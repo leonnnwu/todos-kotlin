@@ -8,11 +8,11 @@ import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
 import kotlinx.android.synthetic.main.activity_tasks.*
 import kotlinx.android.synthetic.main.app_bar_tasks.*
+import timber.log.Timber
 import todo.android.lwu.com.todos.R
 
 class TasksActivity : AppCompatActivity() {
@@ -23,6 +23,11 @@ class TasksActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        //Initialize Timber log library
+        Timber.plant(Timber.DebugTree())
+
+        //Set the content view
         setContentView(R.layout.activity_tasks)
 
         //Set up the toolbar
@@ -30,16 +35,12 @@ class TasksActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
 
+        //Set listener of floating action bar.
         val fab = findViewById(R.id.fab) as FloatingActionButton
         fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show()
         }
-
-        val toggle = ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
-        drawer.setDrawerListener(toggle)
-        toggle.syncState()
 
         //Setup the navigation drawer
         drawerLayout = findViewById(R.id.drawer_layout) as DrawerLayout
@@ -47,6 +48,14 @@ class TasksActivity : AppCompatActivity() {
         if (nav_view != null) {
             setupDrawerContent(nav_view)
         }
+
+        //Set up drawer toggle
+        val toggle = ActionBarDrawerToggle(
+                this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        drawerLayout.setDrawerListener(toggle)
+        toggle.syncState()
+
+
     }
 
     override fun onBackPressed() {
@@ -60,7 +69,7 @@ class TasksActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.tasks, menu)
+        menuInflater.inflate(R.menu.main, menu)
         return true
     }
 
@@ -78,32 +87,17 @@ class TasksActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    fun onNavigationItemSelected(item: MenuItem): Boolean {
-        // Handle navigation view item clicks here.
-        val id = item.itemId
-
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        }
-
-        val drawer = findViewById(R.id.drawer_layout) as DrawerLayout
-        drawer.closeDrawer(GravityCompat.START)
-        return true
-    }
-
     private fun setupDrawerContent(navigationView: NavigationView) {
         navigationView.setNavigationItemSelectedListener {
+            when (it.itemId) {
+                R.id.list_navigation_menu_item -> Timber.d("to-do list was clicked!")
+                R.id.statistics_navigation_menu_item -> Timber.d("statistics was clicked!")
+            }
 
+            //Close the navigation drawer when an item is selected.
+            it.isChecked = true
+            drawerLayout.closeDrawers()
+            true
         }
     }
 }
