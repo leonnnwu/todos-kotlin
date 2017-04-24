@@ -2,6 +2,7 @@ package todo.android.lwu.com.todos.tasks
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -34,21 +35,44 @@ class TasksFragment(): Fragment(), TasksContract.View, TasksAdapter.TaskItemList
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val root = inflater.inflate(R.layout.tasks_fag, container, false)
+        return inflater.inflate(R.layout.tasks_fag, container, false)
+    }
+
+    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         //Set up tasks view
         tasks_list.adapter = listAdapter
 
-        return root
+        refresh_layout.setColorSchemeColors(
+                ContextCompat.getColor(activity, R.color.colorPrimary),
+                ContextCompat.getColor(activity, R.color.colorAccent),
+                ContextCompat.getColor(activity, R.color.colorPrimaryDark)
+        )
+
+        // Set the scrolling view in the custom SwipeRefreshLayout
+        refresh_layout.setScrollUpChild(tasks_list)
+
+        refresh_layout.setOnRefreshListener {
+            presenter.loadTasks(false)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        presenter.start()
     }
 
     override fun onTaskClick(clickedTask: Task) {
+        presenter.openTaskDetails(clickedTask)
     }
 
     override fun onCompletedTaskClick(completedTask: Task) {
+        presenter.completeTask(completedTask)
     }
 
     override fun onActivateTaskClick(activatedTask: Task) {
+        presenter.activateTask(activatedTask)
     }
 }
 
@@ -102,6 +126,7 @@ class TasksAdapter(val tasks: List<Task>, val itemListener: TaskItemListener): B
     }
 
     interface TaskItemListener {
+
         fun onTaskClick(clickedTask: Task)
 
         fun onCompletedTaskClick(completedTask: Task)

@@ -14,6 +14,8 @@ import kotlinx.android.synthetic.main.activity_tasks.*
 import kotlinx.android.synthetic.main.app_bar_tasks.*
 import timber.log.Timber
 import todo.android.lwu.com.todos.R
+import todo.android.lwu.com.todos.data.source.TasksRepository
+import todo.android.lwu.com.todos.utils.addFragmentToActivity
 
 class TasksActivity : AppCompatActivity() {
 
@@ -49,10 +51,20 @@ class TasksActivity : AppCompatActivity() {
             setupDrawerContent(nav_view)
         }
 
+        //Add tasks fragment to activity
+        val tasksFragment: TasksFragment = supportFragmentManager.findFragmentById(R.id.contentFrame) as TasksFragment? ?: TasksFragment.newInstance()
+        addFragmentToActivity(supportFragmentManager, tasksFragment, R.id.contentFrame)
+
+        //Create the presenter
+        //FIXME: Create TasksPresenter that contains data repository
+        tasksPresenter = TasksPresenter(TasksRepository(), tasksFragment)
+
+        //FIXME: Load previously saved state, if available
+
         //Set up drawer toggle
         val toggle = ActionBarDrawerToggle(
                 this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
-        drawerLayout.setDrawerListener(toggle)
+        drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
 
