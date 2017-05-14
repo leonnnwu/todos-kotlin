@@ -5,12 +5,32 @@ import todo.android.lwu.com.todos.data.Task
 /**
  * Created by lwu on 4/23/17.
  */
-object TasksRepository: TasksDataSource {
+class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSource) : TasksDataSource {
 
-    private lateinit var tasksRemoteDataSource: TasksDataSource
+    companion object {
+        private val lockObject = Any()
+        private var INSTANCE: TasksRepository? = null
 
-    fun init(tasksRemoteDataSource: TasksDataSource) {
-        this.tasksRemoteDataSource = tasksRemoteDataSource
+        fun getInstance(tasksRemoteDataSource: TasksDataSource): TasksRepository {
+            synchronized(lockObject) {
+                return INSTANCE ?: TasksRepository(tasksRemoteDataSource)
+            }
+        }
+    }
+    override fun completeTask(task: Task) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun completeTask(taskId: String) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun activateTask(task: Task) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun activateTask(taskId: String) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun getAllTasks() {

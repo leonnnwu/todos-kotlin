@@ -1,17 +1,14 @@
-package todo.android.lwu.com.todos.data.source.remote
+package todo.android.lwu.com.todos.data
 
-import android.os.Handler
 import org.greenrobot.eventbus.EventBus
-import todo.android.lwu.com.todos.data.Task
 import todo.android.lwu.com.todos.data.source.TasksDataSource
 import todo.android.lwu.com.todos.events.TasksDownloadedEvent
 
 /**
- * Created by lwu on 4/23/17.
+ * Created by lwu on 5/14/17.
  */
-object TasksRemoteDataSource: TasksDataSource {
+object FakeTasksRemoteDataSource: TasksDataSource {
     val TASKS_SERVICE_DATA = emptyMap<String, Task>().toMutableMap()
-    val SERVICE_LATENCY_IN_MILLIS = 5000L
 
     init {
         addTask("Build tower in Pisa", "Ground looks good, no foundation work required.")
@@ -24,15 +21,11 @@ object TasksRemoteDataSource: TasksDataSource {
     }
 
     override fun getAllTasks() {
-        Handler().postDelayed({
-            EventBus.getDefault().post(TasksDownloadedEvent.All(TASKS_SERVICE_DATA.values.toList()))
-        }, SERVICE_LATENCY_IN_MILLIS)
+        EventBus.getDefault().post(TasksDownloadedEvent.All(TASKS_SERVICE_DATA.values.toList()))
     }
 
     override fun getTask(taskId: String) {
-        Handler().postDelayed({
-            EventBus.getDefault().post(TasksDownloadedEvent.One(TASKS_SERVICE_DATA[taskId]))
-        }, SERVICE_LATENCY_IN_MILLIS)
+        EventBus.getDefault().post(TasksDownloadedEvent.One(TASKS_SERVICE_DATA[taskId]))
     }
 
     override fun saveTask(task: Task) {
@@ -79,6 +72,4 @@ object TasksRemoteDataSource: TasksDataSource {
                 ?.run { this.copy(completed = false) }
                 ?.let { TASKS_SERVICE_DATA.put(taskId, it) }
     }
-
-
 }

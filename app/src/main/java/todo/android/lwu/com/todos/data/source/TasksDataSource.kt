@@ -18,4 +18,12 @@ interface TasksDataSource {
     fun deleteAllTasks()
 
     fun deleteTask(taskId: String)
+
+    fun completeTask(task: Task)
+
+    fun completeTask(taskId: String)
+
+    fun activateTask(task: Task)
+
+    fun activateTask(taskId: String)
 }

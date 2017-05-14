@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import kotlinx.android.synthetic.main.tasks_activity.*
 import timber.log.Timber
+import todo.android.lwu.com.todos.Injection
 import todo.android.lwu.com.todos.R
 import todo.android.lwu.com.todos.data.source.TasksRepository
 import todo.android.lwu.com.todos.utils.addFragmentToActivity
@@ -53,8 +54,7 @@ class TasksActivity : AppCompatActivity() {
         addFragmentToActivity(supportFragmentManager, tasksFragment, R.id.contentFrame)
 
         //Create the presenter
-        //FIXME: Create TasksPresenter that contains data repository
-        tasksPresenter = TasksPresenter(TasksRepository, tasksFragment)
+        tasksPresenter = TasksPresenter(Injection.provideTasksRepository(applicationContext), tasksFragment)
     }
 
     override fun onBackPressed() {
