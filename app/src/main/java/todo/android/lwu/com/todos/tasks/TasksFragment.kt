@@ -7,16 +7,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
-import android.widget.CheckBox
-import android.widget.TextView
-import kotlinx.android.synthetic.main.tasks_fag.*
+import kotlinx.android.synthetic.main.task_item.view.*
+import kotlinx.android.synthetic.main.tasks_fag.view.*
 import todo.android.lwu.com.todos.R
 import todo.android.lwu.com.todos.data.Task
 
 /**
  * Created by lwu on 4/23/17.
  */
-class TasksFragment(): Fragment(), TasksContract.View, TasksAdapter.TaskItemListener{
+class TasksFragment: Fragment(), TasksContract.View{
 
     private lateinit var presenter: TasksContract.Presenter
     private lateinit var listAdapter: TasksAdapter
@@ -31,48 +30,46 @@ class TasksFragment(): Fragment(), TasksContract.View, TasksAdapter.TaskItemList
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        listAdapter = TasksAdapter(emptyList(), this)
+        listAdapter = TasksAdapter(emptyList(), object: TasksAdapter.TaskItemListener {
+            override fun onTaskClick(clickedTask: Task) {
+                presenter.openTaskDetails(clickedTask)
+            }
+
+            override fun onCompletedTaskClick(completedTask: Task) {
+                presenter.completeTask(completedTask)
+            }
+
+            override fun onActivateTaskClick(activatedTask: Task) {
+                presenter.activateTask(activatedTask)
+            }
+        })
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.tasks_fag, container, false)
-    }
+        val view = inflater.inflate(R.layout.tasks_fag, container, false)
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+        // Set up tasks view
+        view.tasks_list.adapter = listAdapter
 
-        //Set up tasks view
-        tasks_list.adapter = listAdapter
-
-        refresh_layout.setColorSchemeColors(
-                ContextCompat.getColor(activity, R.color.colorPrimary),
-                ContextCompat.getColor(activity, R.color.colorAccent),
-                ContextCompat.getColor(activity, R.color.colorPrimaryDark)
+        // Set up refresh progress indicator
+        view.refresh_layout.setColorSchemeColors(
+                ContextCompat.getColor(context, R.color.colorPrimary),
+                ContextCompat.getColor(context, R.color.colorAccent),
+                ContextCompat.getColor(context, R.color.colorPrimaryDark)
         )
 
-        // Set the scrolling view in the custom SwipeRefreshLayout
-        refresh_layout.setScrollUpChild(tasks_list)
+        // Set the scrolling view in the custom swipeRefreshLayout
+        view.refresh_layout.setScrollUpChild(view.tasks_list)
+        view.refresh_layout.setOnRefreshListener { presenter.loadTasks(false) }
 
-        refresh_layout.setOnRefreshListener {
-            presenter.loadTasks(false)
-        }
+        // TODO: Add menu
+
+        return view
     }
 
     override fun onResume() {
         super.onResume()
         presenter.start()
-    }
-
-    override fun onTaskClick(clickedTask: Task) {
-        presenter.openTaskDetails(clickedTask)
-    }
-
-    override fun onCompletedTaskClick(completedTask: Task) {
-        presenter.completeTask(completedTask)
-    }
-
-    override fun onActivateTaskClick(activatedTask: Task) {
-        presenter.activateTask(activatedTask)
     }
 }
 
@@ -96,12 +93,10 @@ class TasksAdapter(val tasks: List<Task>, val itemListener: TaskItemListener): B
         val task = getItem(position)
 
         //Set TextView
-        val titleTV = rowView.findViewById(R.id.title) as TextView
-        titleTV.text = task.getTitleForList()
+        rowView.title.text = task.getTitleForList()
 
         //Set checkbox
-        val completeCB = rowView.findViewById(R.id.complete) as CheckBox
-        completeCB.isChecked = task.completed
+        rowView.complete.isChecked = task.completed
 
         if (task.completed) {
             rowView.setBackgroundResource(R.drawable.list_completed_touch_feedback)
@@ -110,7 +105,7 @@ class TasksAdapter(val tasks: List<Task>, val itemListener: TaskItemListener): B
         }
 
         //Bind listener
-        completeCB.setOnClickListener {
+        rowView.complete.setOnClickListener {
             if (!task.completed) {
                 itemListener.onCompletedTaskClick(task)
             } else {
