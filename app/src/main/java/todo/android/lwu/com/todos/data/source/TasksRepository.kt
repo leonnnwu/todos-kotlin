@@ -1,9 +1,13 @@
 package todo.android.lwu.com.todos.data.source
 
+import org.greenrobot.eventbus.EventBus
 import todo.android.lwu.com.todos.data.Task
+import todo.android.lwu.com.todos.events.TasksDownloadedEvent
 
 /**
  * Created by lwu on 4/23/17.
+ *
+ * TODO: Add local tasks data source
  */
 class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSource) : TasksDataSource {
 
@@ -16,7 +20,31 @@ class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSo
                 return INSTANCE ?: TasksRepository(tasksRemoteDataSource)
             }
         }
+
+        /**
+         * Used to force {@link #getInstance(TasksDataSource)} to create a new instance next time it's called.
+         */
+        fun destroyInstance() {
+            INSTANCE = null
+        }
     }
+
+    private val cachedTasks: MutableMap<String, Task> by lazyOf(emptyMap<String, Task>().toMutableMap())
+    private var cacheIsDirty = false
+
+    override fun getTask(taskId: String, onTaskLoaded: (Task) -> Unit) {
+        val cachedTask = getTaskWithId(taskId)
+
+        if (cachedTask != null) {
+            EventBus.getDefault().post(TasksDownloadedEvent.One(cachedTask))
+        } else {
+            tasksRemoteDataSource.getTask(taskId) { task ->
+                cachedTasks.put(task.id, task)
+                EventBus.getDefault().post(TasksDownloadedEvent.One(task))
+            }
+        }
+    }
+
     override fun completeTask(task: Task) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
@@ -33,12 +61,23 @@ class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSo
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun getAllTasks() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun getAllTasks(onTasksLoaded: (List<Task>) -> Unit) {
 
-    override fun getTask(taskId: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        when {
+            !cacheIsDirty -> {
+                val taskList = cachedTasks.values.toList()
+                onTasksLoaded(taskList)
+                EventBus.getDefault().post(TasksDownloadedEvent.All(taskList))
+            }
+            cacheIsDirty -> {
+                tasksRemoteDataSource.getAllTasks {
+                    refreshCache(it)
+                    onTasksLoaded(it)
+                    EventBus.getDefault().post(TasksDownloadedEvent.All(it))
+                }
+            }
+            else -> Unit //TODO: Get from local data source
+        }
     }
 
     override fun saveTask(task: Task) {
@@ -57,5 +96,17 @@ class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSo
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+    private fun getTaskWithId(id: String): Task? {
+        return cachedTasks[id]
+    }
+
+    private fun refreshCache(tasks: List<Task>) {
+        cachedTasks.clear()
+        tasks.associateBy {
+            it.id
+        }.let {
+            cachedTasks.putAll(it)
+        }
+    }
 
 }

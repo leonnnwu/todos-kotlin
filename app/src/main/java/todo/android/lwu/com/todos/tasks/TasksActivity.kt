@@ -12,7 +12,6 @@ import kotlinx.android.synthetic.main.tasks_activity.*
 import timber.log.Timber
 import todo.android.lwu.com.todos.Injection
 import todo.android.lwu.com.todos.R
-import todo.android.lwu.com.todos.data.source.TasksRepository
 import todo.android.lwu.com.todos.utils.addFragmentToActivity
 
 class TasksActivity : AppCompatActivity() {

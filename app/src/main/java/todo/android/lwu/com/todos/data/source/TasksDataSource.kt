@@ -7,9 +7,9 @@ import todo.android.lwu.com.todos.data.Task
  */
 interface TasksDataSource {
 
-    fun getAllTasks()
+    fun getAllTasks(onTasksLoaded: (List<Task>) -> Unit)
 
-    fun getTask(taskId: String)
+    fun getTask(taskId: String, onTaskLoaded: (Task) -> Unit)
 
     fun saveTask(task: Task)
 

@@ -8,6 +8,10 @@ import todo.android.lwu.com.todos.data.source.TasksRepository
  */
 class TasksPresenter(private val tasksRepository: TasksRepository, private val tasksView: TasksContract.View) : TasksContract.Presenter {
 
+    init {
+        tasksView.setPresenter(this)
+    }
+
     override fun loadTasks(forceUpdate: Boolean) {
     }
 
@@ -23,7 +27,7 @@ class TasksPresenter(private val tasksRepository: TasksRepository, private val t
     override fun start() {
     }
 
-    init {
-        tasksView.setPresenter(this)
+    private fun loadTasks(forceUpdate: Boolean, showLoadingUI: Boolean) {
+
     }
 }

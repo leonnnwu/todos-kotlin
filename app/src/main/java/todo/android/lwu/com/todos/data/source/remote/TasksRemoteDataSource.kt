@@ -23,15 +23,21 @@ object TasksRemoteDataSource: TasksDataSource {
         TASKS_SERVICE_DATA.put(newTask.id, newTask)
     }
 
-    override fun getAllTasks() {
+    override fun getAllTasks(onTasksLoaded: (List<Task>) -> Unit) {
         Handler().postDelayed({
-            EventBus.getDefault().post(TasksDownloadedEvent.All(TASKS_SERVICE_DATA.values.toList()))
+            val tasks = TASKS_SERVICE_DATA.values.toList()
+            onTasksLoaded(tasks)
         }, SERVICE_LATENCY_IN_MILLIS)
     }
 
-    override fun getTask(taskId: String) {
+    override fun getTask(taskId: String, onTaskLoaded: (Task) -> Unit) {
         Handler().postDelayed({
-            EventBus.getDefault().post(TasksDownloadedEvent.One(TASKS_SERVICE_DATA[taskId]))
+            val task = TASKS_SERVICE_DATA[taskId]
+
+            if (task != null) {
+                onTaskLoaded(task)
+            }
+
         }, SERVICE_LATENCY_IN_MILLIS)
     }
 

@@ -2,6 +2,7 @@ package todo.android.lwu.com.todos.data
 
 import org.greenrobot.eventbus.EventBus
 import todo.android.lwu.com.todos.data.source.TasksDataSource
+import todo.android.lwu.com.todos.data.source.remote.TasksRemoteDataSource
 import todo.android.lwu.com.todos.events.TasksDownloadedEvent
 
 /**
@@ -20,12 +21,17 @@ object FakeTasksRemoteDataSource: TasksDataSource {
         TASKS_SERVICE_DATA.put(newTask.id, newTask)
     }
 
-    override fun getAllTasks() {
-        EventBus.getDefault().post(TasksDownloadedEvent.All(TASKS_SERVICE_DATA.values.toList()))
+    override fun getAllTasks(onTasksLoaded: (List<Task>) -> Unit) {
+        val tasks = TasksRemoteDataSource.TASKS_SERVICE_DATA.values.toList()
+        onTasksLoaded(tasks)
     }
 
-    override fun getTask(taskId: String) {
-        EventBus.getDefault().post(TasksDownloadedEvent.One(TASKS_SERVICE_DATA[taskId]))
+    override fun getTask(taskId: String, onTaskLoaded: (Task) -> Unit) {
+        val task = TasksRemoteDataSource.TASKS_SERVICE_DATA[taskId]
+
+        if (task != null) {
+            onTaskLoaded(task)
+        }
     }
 
     override fun saveTask(task: Task) {
