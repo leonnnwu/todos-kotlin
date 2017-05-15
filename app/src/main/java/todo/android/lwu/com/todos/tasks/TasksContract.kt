@@ -10,6 +10,9 @@ import todo.android.lwu.com.todos.data.Task
 interface TasksContract {
     interface View: BaseView<Presenter> {
 
+        fun showTasks(tasks: List<Task>)
+
+        fun showNoTasks()
     }
 
     interface Presenter: BasePresenter {

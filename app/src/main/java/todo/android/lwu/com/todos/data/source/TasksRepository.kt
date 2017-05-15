@@ -29,8 +29,15 @@ class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSo
         }
     }
 
-    private val cachedTasks: MutableMap<String, Task> by lazyOf(emptyMap<String, Task>().toMutableMap())
+    private val cachedTasks: MutableMap<String, Task>
     private var cacheIsDirty = false
+
+    init {
+        cachedTasks = mutableMapOf()
+        tasksRemoteDataSource.getAllTasks {
+            refreshCache(it)
+        }
+    }
 
     override fun getTask(taskId: String, onTaskLoaded: (Task) -> Unit) {
         val cachedTask = getTaskWithId(taskId)

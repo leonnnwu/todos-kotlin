@@ -13,6 +13,7 @@ class TasksPresenter(private val tasksRepository: TasksRepository, private val t
     }
 
     override fun loadTasks(forceUpdate: Boolean) {
+        loadTasks(false, false)
     }
 
     override fun openTaskDetails(requestedTask: Task) {
@@ -25,9 +26,11 @@ class TasksPresenter(private val tasksRepository: TasksRepository, private val t
     }
 
     override fun start() {
+        tasksView.showNoTasks()
+        loadTasks(false)
     }
 
     private fun loadTasks(forceUpdate: Boolean, showLoadingUI: Boolean) {
-
+        tasksRepository.getAllTasks {  }
     }
 }

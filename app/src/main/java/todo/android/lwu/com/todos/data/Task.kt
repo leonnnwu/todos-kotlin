@@ -6,7 +6,7 @@ import java.util.*
  * Created by lwu on 4/23/17.
  */
 data class Task(
-        val id: String,
+        val id: String = UUID.randomUUID().toString(),
         val title: String,
         val description: String = UUID.randomUUID().toString(),
         val completed: Boolean = false

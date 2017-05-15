@@ -19,7 +19,7 @@ object TasksRemoteDataSource: TasksDataSource {
     }
 
     private fun addTask(title: String, description: String) {
-        val newTask = Task(title, description)
+        val newTask = Task(title = title, description = description)
         TASKS_SERVICE_DATA.put(newTask.id, newTask)
     }
 

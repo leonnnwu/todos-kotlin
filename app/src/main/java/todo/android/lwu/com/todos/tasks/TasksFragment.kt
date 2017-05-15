@@ -8,15 +8,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import kotlinx.android.synthetic.main.task_item.view.*
+import kotlinx.android.synthetic.main.tasks_fag.*
 import kotlinx.android.synthetic.main.tasks_fag.view.*
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import todo.android.lwu.com.todos.R
 import todo.android.lwu.com.todos.data.Task
+import todo.android.lwu.com.todos.events.TasksDownloadedEvent
 
 /**
  * Created by lwu on 4/23/17.
  */
 class TasksFragment: Fragment(), TasksContract.View{
-
     private lateinit var presenter: TasksContract.Presenter
     private lateinit var listAdapter: TasksAdapter
 
@@ -67,16 +71,58 @@ class TasksFragment: Fragment(), TasksContract.View{
         return view
     }
 
+    override fun onStart() {
+        super.onStart()
+        EventBus.getDefault().register(this)
+    }
+
     override fun onResume() {
         super.onResume()
         presenter.start()
     }
+
+    override fun onStop() {
+        EventBus.getDefault().unregister(this)
+        super.onStop()
+    }
+
+    override fun showTasks(tasks: List<Task>) {
+        listAdapter.replaceData(tasks)
+
+        tasksLL.visibility = View.VISIBLE
+        noTasks.visibility = View.GONE
+    }
+
+    override fun showNoTasks() {
+        tasksLL.visibility = View.GONE
+        noTasks.visibility = View.VISIBLE
+        noTasksMain.text = context.getString(R.string.no_tasks_all)
+        noTasksIcon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_assignment_turned_in_24dp))
+        noTasksAdd.visibility = View.GONE
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onLoadAllTasks(event: TasksDownloadedEvent.All) {
+        showTasks(event.taskList)
+    }
 }
 
-class TasksAdapter(val tasks: List<Task>, val itemListener: TaskItemListener): BaseAdapter() {
+class TasksAdapter(tasks: List<Task>, val itemListener: TaskItemListener): BaseAdapter() {
+
+    val dataSet: MutableList<Task> = tasks.toMutableList()
+
+    fun replaceData(newTasks: List<Task>) {
+        setList(newTasks)
+        notifyDataSetChanged()
+    }
+
+    private fun setList(newTasks: List<Task>) {
+        dataSet.clear()
+        dataSet.addAll(newTasks)
+    }
 
     override fun getItem(position: Int): Task {
-        return tasks[position]
+        return dataSet[position]
     }
 
     override fun getItemId(position: Int): Long {
@@ -84,7 +130,7 @@ class TasksAdapter(val tasks: List<Task>, val itemListener: TaskItemListener): B
     }
 
     override fun getCount(): Int {
-        return tasks.size
+        return dataSet.size
     }
 
     override fun getView(position: Int, contentView: View?, viewGroup: ViewGroup): View {
