@@ -18,6 +18,11 @@ object TasksRemoteDataSource: TasksDataSource {
         addTask("Finish bridge in Tacoma", "Found awesome girders at half the cost!")
     }
 
+    override fun refreshTasks() {
+        // Not required because the {@link TasksRepository} handles the logic of refreshing the
+        // tasks from all the available data sources.
+    }
+
     private fun addTask(title: String, description: String) {
         val newTask = Task(title = title, description = description)
         TASKS_SERVICE_DATA.put(newTask.id, newTask)

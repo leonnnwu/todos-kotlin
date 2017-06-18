@@ -26,4 +26,6 @@ interface TasksDataSource {
     fun activateTask(task: Task)
 
     fun activateTask(taskId: String)
+
+    fun refreshTasks()
 }

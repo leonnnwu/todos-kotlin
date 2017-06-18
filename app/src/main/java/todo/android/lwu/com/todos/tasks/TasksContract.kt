@@ -13,6 +13,24 @@ interface TasksContract {
         fun showTasks(tasks: List<Task>)
 
         fun showNoTasks()
+
+        fun showAddTask()
+
+        fun showFilteringPopUpMenu()
+
+        fun showActiveFilterLabel()
+
+        fun showCompletedFilterLabel()
+
+        fun showAllFilterLabel()
+
+        fun isActive(): Boolean
+
+        fun setLoadingIndicator(active: Boolean)
+
+        fun showNoActiveTasks()
+
+        fun showNoCompletedTasks()
     }
 
     interface Presenter: BasePresenter {
@@ -24,5 +42,30 @@ interface TasksContract {
         fun completeTask(completedTask: Task)
 
         fun activateTask(activeTask: Task)
+
+        fun addNewTask()
+
+        fun clearCompletedTasks()
+
+        fun setFiltering(requestType: TasksFilterType)
+
+        fun getFiltering(): TasksFilterType
     }
+}
+
+enum class TasksFilterType {
+    /**
+     * Do not filter tasks.
+     */
+    ALL_TASKS,
+
+    /**
+     * Filters only the active (not completed yet) tasks.
+     */
+    ACTIVE_TASKS,
+
+    /**
+     * Filters only the completed tasks.
+     */
+    COMPLETED_TASKS
 }

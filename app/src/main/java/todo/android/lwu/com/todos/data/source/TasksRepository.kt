@@ -39,6 +39,10 @@ class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSo
         }
     }
 
+    override fun refreshTasks() {
+        cacheIsDirty = true
+    }
+
     override fun getTask(taskId: String, onTaskLoaded: (Task) -> Unit) {
         val cachedTask = getTaskWithId(taskId)
 
@@ -74,13 +78,11 @@ class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSo
             !cacheIsDirty -> {
                 val taskList = cachedTasks.values.toList()
                 onTasksLoaded(taskList)
-                EventBus.getDefault().post(TasksDownloadedEvent.All(taskList))
             }
             cacheIsDirty -> {
                 tasksRemoteDataSource.getAllTasks {
                     refreshCache(it)
                     onTasksLoaded(it)
-                    EventBus.getDefault().post(TasksDownloadedEvent.All(it))
                 }
             }
             else -> Unit //TODO: Get from local data source

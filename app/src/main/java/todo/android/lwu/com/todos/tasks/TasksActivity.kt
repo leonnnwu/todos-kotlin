@@ -40,18 +40,26 @@ class TasksActivity : AppCompatActivity() {
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
 
-        //Set listener of floating action bar.
-        fab_add_task.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
-        }
-
         //Add tasks fragment to activity
         val tasksFragment: TasksFragment = supportFragmentManager.findFragmentById(R.id.contentFrame) as TasksFragment? ?: TasksFragment.newInstance()
         tasksFragment.takeIf { !it.isAdded }?.let { addFragmentToActivity(supportFragmentManager, it, R.id.contentFrame) }
 
         //Create the presenter
         tasksPresenter = TasksPresenter(Injection.provideTasksRepository(applicationContext), tasksFragment)
+
+        //Set listener of floating action bar.
+        fab_add_task.setOnClickListener { _ ->
+            tasksPresenter.addNewTask()
+        }
+
+        if (savedInstanceState != null) {
+            tasksPresenter.setFiltering(savedInstanceState.getSerializable(CURRENT_FILTERING_KEY) as TasksFilterType)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putSerializable(CURRENT_FILTERING_KEY, tasksPresenter.getFiltering())
+        super.onSaveInstanceState(outState)
     }
 
     override fun onBackPressed() {
@@ -76,5 +84,9 @@ class TasksActivity : AppCompatActivity() {
             drawer_layout.closeDrawers()
             true
         }
+    }
+
+    companion object {
+        private const val CURRENT_FILTERING_KEY = "CURRENT_FILTERING_KEY"
     }
 }
