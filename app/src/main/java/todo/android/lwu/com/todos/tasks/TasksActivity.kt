@@ -32,10 +32,7 @@ class TasksActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         //Setup the navigation drawer
-        drawer_layout.setStatusBarBackgroundColor(ContextCompat.getColor(this, R.color.colorPrimaryDark))
-        if (nav_view != null) {
-            setupDrawerContent(nav_view)
-        }
+        setupDrawerContent(nav_view)
 
         //Set up drawer toggle
         val toggle = ActionBarDrawerToggle(
