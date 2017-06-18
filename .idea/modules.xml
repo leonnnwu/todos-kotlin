@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/ToDos.iml" filepath="$PROJECT_DIR$/ToDos.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/todos-kotlin.iml" filepath="$PROJECT_DIR$/todos-kotlin.iml" />
     </modules>
   </component>
 </project>
