@@ -48,7 +48,7 @@ class TasksActivity : AppCompatActivity() {
 
         //Add tasks fragment to activity
         val tasksFragment: TasksFragment = supportFragmentManager.findFragmentById(R.id.contentFrame) as TasksFragment? ?: TasksFragment.newInstance()
-        addFragmentToActivity(supportFragmentManager, tasksFragment, R.id.contentFrame)
+        tasksFragment.takeIf { !it.isAdded }?.let { addFragmentToActivity(supportFragmentManager, it, R.id.contentFrame) }
 
         //Create the presenter
         tasksPresenter = TasksPresenter(Injection.provideTasksRepository(applicationContext), tasksFragment)
@@ -60,19 +60,6 @@ class TasksActivity : AppCompatActivity() {
             drawer.closeDrawer(GravityCompat.START)
         } else {
             super.onBackPressed()
-        }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            android.R.id.home -> {
-                drawer_layout.openDrawer(GravityCompat.START)
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
         }
     }
 
