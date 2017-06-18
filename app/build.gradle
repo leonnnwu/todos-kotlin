@@ -32,16 +32,16 @@ android {
         }
     }
 
-    flavorDimensions "todos"
+    flavorDimensions "mode"
 
     productFlavors {
         mock {
-            dimension "todos"
+            dimension "mode"
             applicationIdSuffix = ".mock"
         }
 
         prod {
-
+            dimension "mode"
         }
     }
 
