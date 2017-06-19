@@ -1,9 +1,9 @@
 package todo.android.lwu.com.todos
 
 import android.content.Context
-import todo.android.lwu.com.todos.data.FakeTasksRemoteDataSource
 import todo.android.lwu.com.todos.data.source.TasksRepository
 import todo.android.lwu.com.todos.data.source.local.TasksLocalDataSource
+import todo.android.lwu.com.todos.data.source.remote.TasksRemoteDataSource
 
 /**
  * Created by lwu on 5/14/17.
@@ -14,6 +14,6 @@ import todo.android.lwu.com.todos.data.source.local.TasksLocalDataSource
 object Injection {
 
     fun provideTasksRepository(context: Context): TasksRepository {
-        return TasksRepository.getInstance(FakeTasksRemoteDataSource, TasksLocalDataSource.getInstance(context))
+        return TasksRepository.getInstance(TasksRemoteDataSource, TasksLocalDataSource.getInstance(context))
     }
 }

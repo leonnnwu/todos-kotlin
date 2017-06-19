@@ -1,6 +1,7 @@
 package todo.android.lwu.com.todos.tasks
 
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.view.*
@@ -181,6 +182,10 @@ class TasksFragment: Fragment(), TasksContract.View{
                 R.drawable.ic_verified_user_24dp,
                 false
         )
+    }
+
+    override fun showLoadingTasksError() {
+        Snackbar.make(view!!, getString(R.string.loading_tasks_error), Snackbar.LENGTH_LONG).show()
     }
 
     private fun showNoTasksView(text: String, icon: Int, showAddView: Boolean) {

@@ -2,22 +2,24 @@ package todo.android.lwu.com.todos.data.source
 
 import org.greenrobot.eventbus.EventBus
 import todo.android.lwu.com.todos.data.Task
+import todo.android.lwu.com.todos.data.source.local.TasksLocalDataSource
 import todo.android.lwu.com.todos.events.TasksDownloadedEvent
 
 /**
  * Created by lwu on 4/23/17.
  *
- * TODO: Add local tasks data source
  */
-class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSource) : TasksDataSource {
+class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSource,
+                                          val tasksLocalDataSource: TasksDataSource) : TasksDataSource {
 
     companion object {
         private val lockObject = Any()
         private var INSTANCE: TasksRepository? = null
 
-        fun getInstance(tasksRemoteDataSource: TasksDataSource): TasksRepository {
+        fun getInstance(tasksRemoteDataSource: TasksDataSource,
+                        tasksLocalDataSource: TasksDataSource): TasksRepository {
             synchronized(lockObject) {
-                return INSTANCE ?: TasksRepository(tasksRemoteDataSource)
+                return INSTANCE ?: TasksRepository(tasksRemoteDataSource, tasksLocalDataSource)
             }
         }
 
@@ -29,84 +31,155 @@ class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSo
         }
     }
 
-    private val cachedTasks: MutableMap<String, Task>
+    private var cachedTasks: MutableMap<String, Task> = mutableMapOf()
     private var cacheIsDirty = false
-
-    init {
-        cachedTasks = mutableMapOf()
-        tasksRemoteDataSource.getAllTasks {
-            refreshCache(it)
-        }
-    }
 
     override fun refreshTasks() {
         cacheIsDirty = true
     }
 
-    override fun getTask(taskId: String, onTaskLoaded: (Task) -> Unit) {
+    override fun getAllTasks(callback: TasksDataSource.LoadTasksCallback) {
+
+        when {
+            cachedTasks.isNotEmpty() && !cacheIsDirty -> {
+                val taskList = cachedTasks.values.toList()
+                callback.onTasksLoaded(taskList)
+            }
+            cacheIsDirty -> {
+                tasksRemoteDataSource.getAllTasks(callback)
+            }
+            else -> {
+                tasksLocalDataSource.getAllTasks(object: TasksDataSource.LoadTasksCallback {
+                    override fun onTasksLoaded(tasks: List<Task>) {
+                        refreshCache(tasks)
+                        callback.onTasksLoaded(cachedTasks.values.toList())
+                    }
+
+                    override fun onDataNotAvailable() {
+                        getTasksFromRemoteDataSource(callback)
+                    }
+                })
+            }
+        }
+    }
+
+    override fun getTask(taskId: String, callback: TasksDataSource.GetTaskCallback) {
         val cachedTask = getTaskWithId(taskId)
 
         if (cachedTask != null) {
-            EventBus.getDefault().post(TasksDownloadedEvent.One(cachedTask))
+            callback.onTaskLoaded(cachedTask)
         } else {
-            tasksRemoteDataSource.getTask(taskId) { task ->
-                cachedTasks.put(task.id, task)
-                EventBus.getDefault().post(TasksDownloadedEvent.One(task))
-            }
+            tasksLocalDataSource.getTask(taskId, object : TasksDataSource.GetTaskCallback {
+                override fun onTaskLoaded(task: Task?) {
+                    if (task == null) {
+                        onDataNotAvailable()
+                    } else {
+                        cachedTasks.put(task.id, task)
+                        callback.onTaskLoaded(task)
+                    }
+                }
+
+                override fun onDataNotAvailable() {
+                    tasksRemoteDataSource.getTask(taskId, object : TasksDataSource.GetTaskCallback {
+                        override fun onTaskLoaded(task: Task?) {
+                            if (task == null) {
+                                onDataNotAvailable()
+                            } else {
+                                cachedTasks.put(task.id, task)
+                                callback.onTaskLoaded(task)
+                            }
+                        }
+
+                        override fun onDataNotAvailable() {
+                            callback.onDataNotAvailable()
+                        }
+                    })
+                }
+            })
+
         }
     }
 
     override fun completeTask(task: Task) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        tasksRemoteDataSource.completeTask(task)
+        tasksLocalDataSource.completeTask(task)
+
+        cachedTasks.put(task.id, task.copy(completed = true))
     }
 
     override fun completeTask(taskId: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        getTaskWithId(taskId)?.let {
+            completeTask(it)
+        }
     }
 
     override fun activateTask(task: Task) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        tasksRemoteDataSource.activateTask(task)
+        tasksLocalDataSource.activateTask(task)
+
+        cachedTasks.put(task.id, task.copy(completed = false))
     }
 
     override fun activateTask(taskId: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun getAllTasks(onTasksLoaded: (List<Task>) -> Unit) {
-
-        when {
-            !cacheIsDirty -> {
-                val taskList = cachedTasks.values.toList()
-                onTasksLoaded(taskList)
-            }
-            cacheIsDirty -> {
-                tasksRemoteDataSource.getAllTasks {
-                    refreshCache(it)
-                    onTasksLoaded(it)
-                }
-            }
-            else -> Unit //TODO: Get from local data source
+        getTaskWithId(taskId)?.let {
+            activateTask(it)
         }
     }
 
     override fun saveTask(task: Task) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        tasksRemoteDataSource.saveTask(task)
+        tasksLocalDataSource.saveTask(task)
+
+        cachedTasks.put(task.id, task)
     }
 
     override fun clearCompletedTasks() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        tasksRemoteDataSource.clearCompletedTasks()
+        tasksLocalDataSource.clearCompletedTasks()
+
+        cachedTasks.iterator().run {
+            while (this.hasNext()) {
+                this.takeIf { it.next().value.completed }?.remove()
+            }
+        }
     }
 
     override fun deleteAllTasks() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        tasksRemoteDataSource.deleteAllTasks()
+        tasksLocalDataSource.deleteAllTasks()
+        cachedTasks.clear()
     }
 
     override fun deleteTask(taskId: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        tasksRemoteDataSource.deleteTask(taskId)
+        tasksLocalDataSource.deleteTask(taskId)
+
+        cachedTasks.remove(taskId)
     }
 
     private fun getTaskWithId(id: String): Task? {
         return cachedTasks[id]
+    }
+
+    private fun getTasksFromRemoteDataSource(callback: TasksDataSource.LoadTasksCallback) {
+        tasksRemoteDataSource.getAllTasks(object: TasksDataSource.LoadTasksCallback {
+            override fun onTasksLoaded(tasks: List<Task>) {
+                refreshCache(tasks)
+                refreshLocalDataSource(tasks)
+                callback.onTasksLoaded(cachedTasks.values.toList())
+            }
+
+            override fun onDataNotAvailable() {
+                callback.onDataNotAvailable()
+            }
+        })
+    }
+
+    private fun refreshLocalDataSource(tasks: List<Task>) {
+        tasksLocalDataSource.deleteAllTasks()
+        tasks.forEach {
+            tasksLocalDataSource.saveTask(it)
+        }
     }
 
     private fun refreshCache(tasks: List<Task>) {

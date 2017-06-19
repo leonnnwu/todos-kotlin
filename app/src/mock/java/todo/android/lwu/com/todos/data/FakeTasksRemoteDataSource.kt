@@ -26,17 +26,12 @@ object FakeTasksRemoteDataSource: TasksDataSource {
         TASKS_SERVICE_DATA.put(newTask.id, newTask)
     }
 
-    override fun getAllTasks(onTasksLoaded: (List<Task>) -> Unit) {
-        val tasks = TasksRemoteDataSource.TASKS_SERVICE_DATA.values.toList()
-        onTasksLoaded(tasks)
+    override fun getAllTasks(callback: TasksDataSource.LoadTasksCallback) {
+        callback.onTasksLoaded(TasksRemoteDataSource.TASKS_SERVICE_DATA.values.toList())
     }
 
-    override fun getTask(taskId: String, onTaskLoaded: (Task) -> Unit) {
-        val task = TasksRemoteDataSource.TASKS_SERVICE_DATA[taskId]
-
-        if (task != null) {
-            onTaskLoaded(task)
-        }
+    override fun getTask(taskId: String, callback: TasksDataSource.GetTaskCallback) {
+        callback.onTaskLoaded(TasksRemoteDataSource.TASKS_SERVICE_DATA[taskId])
     }
 
     override fun saveTask(task: Task) {

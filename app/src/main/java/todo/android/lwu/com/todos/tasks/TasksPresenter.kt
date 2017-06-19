@@ -1,10 +1,9 @@
 package todo.android.lwu.com.todos.tasks
 
-import org.greenrobot.eventbus.EventBus
 import timber.log.Timber
 import todo.android.lwu.com.todos.data.Task
+import todo.android.lwu.com.todos.data.source.TasksDataSource
 import todo.android.lwu.com.todos.data.source.TasksRepository
-import todo.android.lwu.com.todos.events.TasksDownloadedEvent
 
 /**
  * Created by lwu on 4/3/17.
@@ -61,40 +60,48 @@ class TasksPresenter(private val tasksRepository: TasksRepository, private val t
             tasksRepository.refreshTasks()
         }
 
-        tasksRepository.getAllTasks { taskList ->
-            val tasksToShow = taskList.filter {
-                when (currentFiltering) {
-                    TasksFilterType.ALL_TASKS -> true
-                    TasksFilterType.ACTIVE_TASKS -> it.isActive()
-                    TasksFilterType.COMPLETED_TASKS -> it.completed
-                    else -> true
+        tasksRepository.getAllTasks(object: TasksDataSource.LoadTasksCallback {
+            override fun onTasksLoaded(tasks: List<Task>) {
+                val tasksToShow = tasks.filter {
+                    when (currentFiltering) {
+                        TasksFilterType.ALL_TASKS -> true
+                        TasksFilterType.ACTIVE_TASKS -> it.isActive()
+                        TasksFilterType.COMPLETED_TASKS -> it.completed
+                        else -> true
+                    }
+                }
+
+                if (!tasksView.isActive()) {
+                    return
+                }
+
+                if (showLoadingUI) {
+                    tasksView.setLoadingIndicator(false)
+                }
+
+
+                if (tasksToShow.isEmpty()) {
+                    when (currentFiltering) {
+                        TasksFilterType.ACTIVE_TASKS -> tasksView.showNoActiveTasks()
+                        TasksFilterType.COMPLETED_TASKS -> tasksView.showNoCompletedTasks()
+                        else -> tasksView.showNoTasks()
+                    }
+                } else {
+                    tasksView.showTasks(tasksToShow)
+
+                    when (currentFiltering) {
+                        TasksFilterType.ACTIVE_TASKS -> tasksView.showActiveFilterLabel()
+                        TasksFilterType.COMPLETED_TASKS -> tasksView.showCompletedFilterLabel()
+                        else -> tasksView.showAllFilterLabel()
+                    }
                 }
             }
 
-            if (!tasksView.isActive()) {
-                return@getAllTasks
-            }
-
-            if (showLoadingUI) {
-                tasksView.setLoadingIndicator(false)
-            }
-
-
-            if (tasksToShow.isEmpty()) {
-                when (currentFiltering) {
-                    TasksFilterType.ACTIVE_TASKS -> tasksView.showNoActiveTasks()
-                    TasksFilterType.COMPLETED_TASKS -> tasksView.showNoCompletedTasks()
-                    else -> tasksView.showNoTasks()
-                }
-            } else {
-                tasksView.showTasks(tasksToShow)
-
-                when (currentFiltering) {
-                    TasksFilterType.ACTIVE_TASKS -> tasksView.showActiveFilterLabel()
-                    TasksFilterType.COMPLETED_TASKS -> tasksView.showCompletedFilterLabel()
-                    else -> tasksView.showAllFilterLabel()
+            override fun onDataNotAvailable() {
+                if (tasksView.isActive()) {
+                    tasksView.showLoadingTasksError()
                 }
             }
-        }
+        })
     }
 }

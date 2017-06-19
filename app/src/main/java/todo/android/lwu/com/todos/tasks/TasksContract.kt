@@ -31,6 +31,8 @@ interface TasksContract {
         fun showNoActiveTasks()
 
         fun showNoCompletedTasks()
+
+        fun showLoadingTasksError()
     }
 
     interface Presenter: BasePresenter {
