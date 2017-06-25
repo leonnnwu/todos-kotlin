@@ -123,6 +123,10 @@ class TasksFragment: Fragment(), TasksContract.View{
         Snackbar.make(view!!, getString(R.string.task_marked_active), Snackbar.LENGTH_LONG).show()
     }
 
+    override fun showCompletedTaskClear() {
+        Snackbar.make(view!!, getString(R.string.completed_tasks_cleared), Snackbar.LENGTH_LONG).show()
+    }
+
     override fun showTasks(tasks: List<Task>) {
         listAdapter.replaceData(tasks)
 

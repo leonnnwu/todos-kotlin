@@ -49,7 +49,9 @@ class TasksPresenter(private val tasksRepository: TasksRepository, private val t
     }
 
     override fun clearCompletedTasks() {
-        Timber.d("Clear completed tasks!")
+        tasksRepository.clearCompletedTasks()
+        tasksView.showCompletedTaskClear()
+        loadTasks(false, false)
     }
 
     override fun setFiltering(requestType: TasksFilterType) {
