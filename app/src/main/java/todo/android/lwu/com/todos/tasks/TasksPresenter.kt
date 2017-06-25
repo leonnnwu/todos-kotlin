@@ -39,6 +39,9 @@ class TasksPresenter(private val tasksRepository: TasksRepository, private val t
     }
 
     override fun activateTask(activeTask: Task) {
+        tasksRepository.activateTask(activeTask)
+        tasksView.showTaskMarkedActivate()
+        loadTasks(false, false)
     }
 
     override fun addNewTask() {

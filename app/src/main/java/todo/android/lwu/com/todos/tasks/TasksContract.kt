@@ -37,6 +37,8 @@ interface TasksContract {
         fun showSuccessfullySavedMessage()
 
         fun showTaskMarkedComplete()
+
+        fun showTaskMarkedActivate()
     }
 
     interface Presenter: BasePresenter {
