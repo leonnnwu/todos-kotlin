@@ -33,6 +33,9 @@ class TasksPresenter(private val tasksRepository: TasksRepository, private val t
     }
 
     override fun completeTask(completedTask: Task) {
+        tasksRepository.completeTask(completedTask)
+        tasksView.showTaskMarkedComplete()
+        loadTasks(false, false)
     }
 
     override fun activateTask(activeTask: Task) {

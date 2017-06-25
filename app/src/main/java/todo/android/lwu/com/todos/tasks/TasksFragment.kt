@@ -115,6 +115,10 @@ class TasksFragment: Fragment(), TasksContract.View{
         Snackbar.make(view!!, getString(R.string.successfully_saved_task_message), Snackbar.LENGTH_LONG).show()
     }
 
+    override fun showTaskMarkedComplete() {
+        Snackbar.make(view!!, getString(R.string.task_marked_complete), Snackbar.LENGTH_LONG).show()
+    }
+
     override fun showTasks(tasks: List<Task>) {
         listAdapter.replaceData(tasks)
 
