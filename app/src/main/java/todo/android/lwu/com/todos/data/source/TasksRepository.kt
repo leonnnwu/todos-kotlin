@@ -1,9 +1,6 @@
 package todo.android.lwu.com.todos.data.source
 
-import org.greenrobot.eventbus.EventBus
 import todo.android.lwu.com.todos.data.Task
-import todo.android.lwu.com.todos.data.source.local.TasksLocalDataSource
-import todo.android.lwu.com.todos.events.TasksDownloadedEvent
 
 /**
  * Created by lwu on 4/23/17.

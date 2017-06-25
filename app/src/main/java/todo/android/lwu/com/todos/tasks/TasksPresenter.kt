@@ -1,6 +1,8 @@
 package todo.android.lwu.com.todos.tasks
 
+import android.app.Activity
 import timber.log.Timber
+import todo.android.lwu.com.todos.addedittask.AddEditTaskActivity
 import todo.android.lwu.com.todos.data.Task
 import todo.android.lwu.com.todos.data.source.TasksDataSource
 import todo.android.lwu.com.todos.data.source.TasksRepository
@@ -21,6 +23,12 @@ class TasksPresenter(private val tasksRepository: TasksRepository, private val t
         firstLoad = false
     }
 
+    override fun result(requestCode: Int, resultCode: Int) {
+        if (AddEditTaskActivity.REQUEST_ADD_TASK == requestCode && Activity.RESULT_OK == resultCode) {
+            tasksView.showSuccessfullySavedMessage()
+        }
+    }
+
     override fun openTaskDetails(requestedTask: Task) {
     }
 
@@ -31,7 +39,7 @@ class TasksPresenter(private val tasksRepository: TasksRepository, private val t
     }
 
     override fun addNewTask() {
-        Timber.d("Show Add New Task View!")
+        tasksView.showAddTask()
     }
 
     override fun clearCompletedTasks() {

@@ -1,5 +1,6 @@
 package todo.android.lwu.com.todos.tasks
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
@@ -11,17 +12,15 @@ import android.widget.Toast
 import kotlinx.android.synthetic.main.task_item.view.*
 import kotlinx.android.synthetic.main.tasks_fag.*
 import kotlinx.android.synthetic.main.tasks_fag.view.*
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 import todo.android.lwu.com.todos.R
+import todo.android.lwu.com.todos.addedittask.AddEditTaskActivity
 import todo.android.lwu.com.todos.data.Task
-import todo.android.lwu.com.todos.events.TasksDownloadedEvent
 
 /**
  * Created by lwu on 4/23/17.
  */
 class TasksFragment: Fragment(), TasksContract.View{
+
     private lateinit var presenter: TasksContract.Presenter
     private lateinit var listAdapter: TasksAdapter
 
@@ -84,7 +83,6 @@ class TasksFragment: Fragment(), TasksContract.View{
 
     override fun onStart() {
         super.onStart()
-        EventBus.getDefault().register(this)
     }
 
     override fun onResume() {
@@ -93,7 +91,6 @@ class TasksFragment: Fragment(), TasksContract.View{
     }
 
     override fun onStop() {
-        EventBus.getDefault().unregister(this)
         super.onStop()
     }
 
@@ -110,6 +107,14 @@ class TasksFragment: Fragment(), TasksContract.View{
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        presenter.result(requestCode, resultCode)
+    }
+
+    override fun showSuccessfullySavedMessage() {
+        Snackbar.make(view!!, getString(R.string.successfully_saved_task_message), Snackbar.LENGTH_LONG).show()
+    }
+
     override fun showTasks(tasks: List<Task>) {
         listAdapter.replaceData(tasks)
 
@@ -118,7 +123,8 @@ class TasksFragment: Fragment(), TasksContract.View{
     }
 
     override fun showAddTask() {
-        Toast.makeText(context, "Show Add Task View!", Toast.LENGTH_SHORT).show()
+        val intent = Intent(context, AddEditTaskActivity::class.java)
+        startActivityForResult(intent, AddEditTaskActivity.REQUEST_ADD_TASK)
     }
 
     override fun showFilteringPopUpMenu() {
@@ -194,11 +200,6 @@ class TasksFragment: Fragment(), TasksContract.View{
         noTasksMain.text = text
         noTasksIcon.setImageDrawable(ContextCompat.getDrawable(context, icon))
         noTasksAdd.visibility = if (showAddView) View.VISIBLE else View.GONE
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onLoadAllTasks(event: TasksDownloadedEvent.All) {
-        showTasks(event.taskList)
     }
 
     private class TasksAdapter(tasks: List<Task>, val itemListener: TaskItemListener): BaseAdapter() {

@@ -33,6 +33,8 @@ interface TasksContract {
         fun showNoCompletedTasks()
 
         fun showLoadingTasksError()
+
+        fun showSuccessfullySavedMessage()
     }
 
     interface Presenter: BasePresenter {
@@ -52,6 +54,8 @@ interface TasksContract {
         fun setFiltering(requestType: TasksFilterType)
 
         fun getFiltering(): TasksFilterType
+
+        fun result(requestCode: Int, resultCode: Int)
     }
 }
 

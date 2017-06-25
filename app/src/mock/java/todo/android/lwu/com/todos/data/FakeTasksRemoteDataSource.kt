@@ -1,20 +1,12 @@
 package todo.android.lwu.com.todos.data
 
-import org.greenrobot.eventbus.EventBus
 import todo.android.lwu.com.todos.data.source.TasksDataSource
-import todo.android.lwu.com.todos.data.source.remote.TasksRemoteDataSource
-import todo.android.lwu.com.todos.events.TasksDownloadedEvent
 
 /**
  * Created by lwu on 5/14/17.
  */
 object FakeTasksRemoteDataSource: TasksDataSource {
     val TASKS_SERVICE_DATA = emptyMap<String, Task>().toMutableMap()
-
-    init {
-        addTask("Build tower in Pisa", "Ground looks good, no foundation work required.")
-        addTask("Finish bridge in Tacoma", "Found awesome girders at half the cost!")
-    }
 
     override fun refreshTasks() {
         // Not required because the {@link TasksRepository} handles the logic of refreshing the
@@ -27,11 +19,11 @@ object FakeTasksRemoteDataSource: TasksDataSource {
     }
 
     override fun getAllTasks(callback: TasksDataSource.LoadTasksCallback) {
-        callback.onTasksLoaded(TasksRemoteDataSource.TASKS_SERVICE_DATA.values.toList())
+        callback.onTasksLoaded(TASKS_SERVICE_DATA.values.toList())
     }
 
     override fun getTask(taskId: String, callback: TasksDataSource.GetTaskCallback) {
-        callback.onTaskLoaded(TasksRemoteDataSource.TASKS_SERVICE_DATA[taskId])
+        callback.onTaskLoaded(TASKS_SERVICE_DATA[taskId])
     }
 
     override fun saveTask(task: Task) {
