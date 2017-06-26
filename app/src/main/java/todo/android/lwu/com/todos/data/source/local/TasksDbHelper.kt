@@ -60,7 +60,7 @@ class TasksDbHelper(context: Context): SQLiteOpenHelper(context, DATABASE_NAME, 
     }
 
     fun insert(contentValues: ContentValues): Long {
-        return this.writableDatabase.insert(TasksPersistenceContract.TaskEntry.TABLE_NAME, null, contentValues)
+        return this.writableDatabase.replace(TasksPersistenceContract.TaskEntry.TABLE_NAME, null, contentValues)
     }
 
     fun saveCompletedStatus(completed: Boolean, id: String) {

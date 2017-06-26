@@ -42,7 +42,7 @@ class AddEditTaskPresenter(
                 override fun onTaskLoaded(task: Task?) {
                     if (addTaskView.isActive() && task != null) {
                         addTaskView.setTitle(task.title)
-                        addTaskView.setTitle(task.description)
+                        addTaskView.setDescription(task.description)
                     }
                 }
 

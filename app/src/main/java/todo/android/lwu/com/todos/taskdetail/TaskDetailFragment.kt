@@ -1,14 +1,17 @@
 package todo.android.lwu.com.todos.taskdetail
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import kotlinx.android.synthetic.main.task_item.*
 import kotlinx.android.synthetic.main.taskdetail_frag.*
 import kotlinx.android.synthetic.main.taskdetail_frag.view.*
 import todo.android.lwu.com.todos.R
+import todo.android.lwu.com.todos.addedittask.AddEditTaskActivity
+import todo.android.lwu.com.todos.addedittask.AddEditTaskActivity.Companion.REQUEST_EDIT_TASK
 
 /**
  * Created by lwu on 6/25/17.
@@ -18,6 +21,7 @@ class TaskDetailFragment: Fragment(), TaskDetailContract.View {
     private lateinit var taskDetailPresenter: TaskDetailContract.Presenter
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        setHasOptionsMenu(true)
         return inflater.inflate(R.layout.taskdetail_frag, container, false)
     }
 
@@ -33,9 +37,37 @@ class TaskDetailFragment: Fragment(), TaskDetailContract.View {
         }
     }
 
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+
+        activity.findViewById(R.id.fab_edit_task).setOnClickListener {
+            taskDetailPresenter.editTask()
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         taskDetailPresenter.start()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == AddEditTaskActivity.REQUEST_EDIT_TASK && resultCode == Activity.RESULT_OK) {
+            activity.finish()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.taskdetail_fragment_menu, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.menu_delete -> {
+                taskDetailPresenter.deleteTask()
+                true
+            }
+            else -> false
+        }
     }
 
     override fun setPresenter(presenter: TaskDetailContract.Presenter) {
@@ -49,7 +81,8 @@ class TaskDetailFragment: Fragment(), TaskDetailContract.View {
     }
 
     override fun showMissingTask() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        task_detail_title.text = ""
+        task_detail_description.text = getString(R.string.no_data)
     }
 
     override fun hideTitle() {
@@ -75,7 +108,10 @@ class TaskDetailFragment: Fragment(), TaskDetailContract.View {
     }
 
     override fun showEditTask(taskId: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val intent = Intent(context, AddEditTaskActivity::class.java).apply {
+            putExtra(AddEditTaskActivity.ARGUMENT_EDIT_TASK_ID, taskId)
+        }
+        startActivityForResult(intent, AddEditTaskActivity.REQUEST_EDIT_TASK)
     }
 
     override fun showTaskDeleted() {

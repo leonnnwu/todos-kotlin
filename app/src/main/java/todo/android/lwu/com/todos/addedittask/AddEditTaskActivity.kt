@@ -56,6 +56,7 @@ class AddEditTaskActivity: AppCompatActivity() {
 
     companion object {
         const val REQUEST_ADD_TASK = 1
+        const val REQUEST_EDIT_TASK = 2
         const val ARGUMENT_EDIT_TASK_ID = "EDIT_TASK_ID"
         const val SHOULD_LOAD_DATA_FROM_REPO_KEY = "SHOULD_LOAD_DATA_FROM_REPO_KEY"
     }

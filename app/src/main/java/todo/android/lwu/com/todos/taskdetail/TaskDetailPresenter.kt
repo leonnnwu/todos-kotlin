@@ -1,5 +1,7 @@
 package todo.android.lwu.com.todos.taskdetail
 
+import android.content.Intent
+import todo.android.lwu.com.todos.addedittask.AddEditTaskActivity
 import todo.android.lwu.com.todos.data.Task
 import todo.android.lwu.com.todos.data.source.TasksDataSource
 import todo.android.lwu.com.todos.data.source.TasksRepository
@@ -22,7 +24,7 @@ class TaskDetailPresenter(
     }
 
     override fun editTask() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        taskDetailView.showEditTask(taskId)
     }
 
     override fun completeTask() {
@@ -31,7 +33,8 @@ class TaskDetailPresenter(
     }
 
     override fun deleteTask() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        tasksRepository.deleteTask(taskId)
+        taskDetailView.showTaskDeleted()
     }
 
     override fun activateTask() {
