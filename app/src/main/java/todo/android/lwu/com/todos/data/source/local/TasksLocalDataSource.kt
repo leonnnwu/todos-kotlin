@@ -51,7 +51,7 @@ class TasksLocalDataSource private constructor(context: Context): TasksDataSourc
 
     override fun getTask(taskId: String, callback: TasksDataSource.GetTaskCallback) {
 
-        val task = dbHelper.getCursor()?.takeIf { cursor ->
+        val task = dbHelper.getCursor(taskId)?.takeIf { cursor ->
             cursor.count > 0
         }?.run {
             this.moveToFirst()

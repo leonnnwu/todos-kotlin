@@ -47,6 +47,18 @@ class TasksDbHelper(context: Context): SQLiteOpenHelper(context, DATABASE_NAME, 
         )
     }
 
+    fun getCursor(taskId: String): Cursor? {
+        return readableDatabase.query(
+                TasksPersistenceContract.TaskEntry.TABLE_NAME,
+                arrayOf(TasksPersistenceContract.TaskEntry.COLUMN_NAME_ENTRY_ID,
+                        TasksPersistenceContract.TaskEntry.COLUMN_NAME_TITLE,
+                        TasksPersistenceContract.TaskEntry.COLUMN_NAME_DESCRIPTION,
+                        TasksPersistenceContract.TaskEntry.COLUMN_NAME_COMPLETED),
+                "${TasksPersistenceContract.TaskEntry.COLUMN_NAME_ENTRY_ID} LIKE ?",
+                arrayOf(taskId), null, null, null
+        )
+    }
+
     fun insert(contentValues: ContentValues): Long {
         return this.writableDatabase.insert(TasksPersistenceContract.TaskEntry.TABLE_NAME, null, contentValues)
     }

@@ -1,6 +1,7 @@
 package todo.android.lwu.com.todos.tasks
 
 import android.app.Activity
+import android.content.Intent
 import timber.log.Timber
 import todo.android.lwu.com.todos.addedittask.AddEditTaskActivity
 import todo.android.lwu.com.todos.data.Task
@@ -30,6 +31,7 @@ class TasksPresenter(private val tasksRepository: TasksRepository, private val t
     }
 
     override fun openTaskDetails(requestedTask: Task) {
+        tasksView.showTaskDetail(requestedTask.id)
     }
 
     override fun completeTask(completedTask: Task) {

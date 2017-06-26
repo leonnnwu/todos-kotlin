@@ -41,6 +41,8 @@ interface TasksContract {
         fun showTaskMarkedActivate()
 
         fun showCompletedTaskClear()
+
+        fun showTaskDetail(taskId: String)
     }
 
     interface Presenter: BasePresenter {

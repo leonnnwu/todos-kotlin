@@ -45,7 +45,7 @@ class AddEditTaskFragment: Fragment(), AddEditTaskContract.View {
     }
 
     override fun showEmptyTaskError() {
-        Snackbar.make(title, getString(R.string.empty_task_message), Snackbar.LENGTH_LONG).show()
+        Snackbar.make(view!!, getString(R.string.empty_task_message), Snackbar.LENGTH_LONG).show()
     }
 
     override fun showTasksList() {

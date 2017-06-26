@@ -15,6 +15,7 @@ import kotlinx.android.synthetic.main.tasks_fag.view.*
 import todo.android.lwu.com.todos.R
 import todo.android.lwu.com.todos.addedittask.AddEditTaskActivity
 import todo.android.lwu.com.todos.data.Task
+import todo.android.lwu.com.todos.taskdetail.TaskDetailActivity
 
 /**
  * Created by lwu on 4/23/17.
@@ -168,6 +169,12 @@ class TasksFragment: Fragment(), TasksContract.View{
 
     override fun isActive(): Boolean {
         return isAdded
+    }
+
+    override fun showTaskDetail(taskId: String) {
+        val intent = Intent(context, TaskDetailActivity::class.java)
+        intent.putExtra(TaskDetailActivity.EXTRA_TASK_ID, taskId)
+        startActivity(intent)
     }
 
     override fun setLoadingIndicator(active: Boolean) {
