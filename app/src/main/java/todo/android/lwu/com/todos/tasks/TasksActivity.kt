@@ -3,6 +3,7 @@ package todo.android.lwu.com.todos.tasks
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.NavigationView
+import android.support.v4.app.NavUtils
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBarDrawerToggle
@@ -11,6 +12,7 @@ import kotlinx.android.synthetic.main.tasks_activity.*
 import timber.log.Timber
 import todo.android.lwu.com.todos.Injection
 import todo.android.lwu.com.todos.R
+import todo.android.lwu.com.todos.statistics.StatisticsActivity
 import todo.android.lwu.com.todos.utils.addFragmentToActivity
 
 class TasksActivity : AppCompatActivity() {
@@ -72,8 +74,11 @@ class TasksActivity : AppCompatActivity() {
     private fun setupDrawerContent(navigationView: NavigationView) {
         navigationView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.list_navigation_menu_item -> Timber.d("to-do list was clicked!")
-                R.id.statistics_navigation_menu_item -> Timber.d("statistics was clicked!")
+                R.id.list_navigation_menu_item -> Unit
+                R.id.statistics_navigation_menu_item -> {
+                    val intent = Intent(this, StatisticsActivity::class.java)
+                    startActivity(intent)
+                }
                 else -> Unit
             }
 

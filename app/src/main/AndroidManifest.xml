@@ -22,6 +22,7 @@
 
         <activity android:name="todo.android.lwu.com.todos.addedittask.AddEditTaskActivity" />
         <activity android:name="todo.android.lwu.com.todos.taskdetail.TaskDetailActivity" />
+        <activity android:name="todo.android.lwu.com.todos.statistics.StatisticsActivity" />
 
     </application>
 
