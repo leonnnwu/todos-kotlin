@@ -43,7 +43,18 @@ class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSo
                 callback.onTasksLoaded(taskList)
             }
             cacheIsDirty -> {
-                tasksRemoteDataSource.getAllTasks(callback)
+                tasksRemoteDataSource.getAllTasks(object : TasksDataSource.LoadTasksCallback {
+                    override fun onTasksLoaded(tasks: List<Task>) {
+                        refreshCache(tasks)
+                        refreshLocalDataSource(tasks)
+                        callback.onTasksLoaded(tasks)
+                    }
+
+                    override fun onDataNotAvailable() {
+                        callback.onDataNotAvailable()
+                    }
+
+                })
             }
             else -> {
                 tasksLocalDataSource.getAllTasks(object: TasksDataSource.LoadTasksCallback {

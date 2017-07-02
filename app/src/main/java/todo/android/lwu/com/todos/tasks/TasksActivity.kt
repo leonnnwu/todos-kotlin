@@ -3,11 +3,11 @@ package todo.android.lwu.com.todos.tasks
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.NavigationView
-import android.support.v4.app.NavUtils
 import android.support.v4.view.GravityCompat
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
+import android.view.MenuItem
 import kotlinx.android.synthetic.main.tasks_activity.*
 import timber.log.Timber
 import todo.android.lwu.com.todos.Injection
@@ -30,6 +30,8 @@ class TasksActivity : AppCompatActivity() {
 
         //Set up the toolbar
         setSupportActionBar(toolbar)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_menu)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         //Setup the navigation drawer
         setupDrawerContent(nav_view)
@@ -69,6 +71,16 @@ class TasksActivity : AppCompatActivity() {
         } else {
             super.onBackPressed()
         }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                drawer_layout.openDrawer(GravityCompat.START)
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun setupDrawerContent(navigationView: NavigationView) {
