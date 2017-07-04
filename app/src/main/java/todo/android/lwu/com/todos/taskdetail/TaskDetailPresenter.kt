@@ -24,20 +24,40 @@ class TaskDetailPresenter(
     }
 
     override fun editTask() {
+        if (taskId.isNullOrEmpty()) {
+            taskDetailView.showMissingTask()
+            return
+        }
+
         taskDetailView.showEditTask(taskId)
     }
 
     override fun completeTask() {
+        if (taskId.isNullOrEmpty()) {
+            taskDetailView.showMissingTask()
+            return
+        }
+
         tasksRepository.completeTask(taskId)
         taskDetailView.showTaskMarkedComplete()
     }
 
     override fun deleteTask() {
+        if (taskId.isNullOrEmpty()) {
+            taskDetailView.showMissingTask()
+            return
+        }
+
         tasksRepository.deleteTask(taskId)
         taskDetailView.showTaskDeleted()
     }
 
     override fun activateTask() {
+        if (taskId.isNullOrEmpty()) {
+            taskDetailView.showMissingTask()
+            return
+        }
+
         tasksRepository.activateTask(taskId)
         taskDetailView.showTaskMarkedActive()
     }

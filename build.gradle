@@ -6,7 +6,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.0-alpha5'
+        classpath 'com.android.tools.build:gradle:2.3.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -25,12 +25,21 @@ task clean(type: Delete) {
 }
 
 ext {
+    // Sdk and tools
     minSdkVersion = 14
     targetSdkVersion = 25
     compileSdkVersion = 25
     buildToolsVersion = "25.0.2"
 
-    mockitoVersion = '1.10.19'
+    // App dependencies
+    supportLibraryVersion = '25.4.0'
+    timberVersion = '4.5.1'
+    eventbusVersion = '3.0.0'
+
+    junitVersion = "4.12"
+    mockitoVersion = '1.5.0'
     powerMockito = '1.6.2'
+    hamcrestVersion = '1.3'
+
 }
 

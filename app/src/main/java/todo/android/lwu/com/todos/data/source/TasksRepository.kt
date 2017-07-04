@@ -28,7 +28,7 @@ class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSo
         }
     }
 
-    private var cachedTasks: MutableMap<String, Task> = mutableMapOf()
+    var cachedTasks: MutableMap<String, Task> = mutableMapOf()
     private var cacheIsDirty = false
 
     override fun refreshTasks() {
