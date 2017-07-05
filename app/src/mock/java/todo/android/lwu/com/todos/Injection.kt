@@ -16,4 +16,8 @@ object Injection {
     fun provideTasksRepository(context: Context): TasksRepository {
         return TasksRepository.getInstance(FakeTasksRemoteDataSource, TasksLocalDataSource.getInstance(context))
     }
+
+    fun provideGetTasks(context: Context): GetTasks {
+
+    }
 }

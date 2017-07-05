@@ -76,6 +76,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "com.jakewharton.timber:timber:$rootProject.ext.timberVersion"
     compile "org.greenrobot:eventbus:$rootProject.ext.eventbusVersion"
+    compile "com.android.support.test.espresso:espresso-idling-resource:$rootProject.espressoVersion"
 
     //Dependencies for local unit tests
     testCompile "junit:junit:$rootProject.ext.junitVersion"

@@ -3,6 +3,10 @@ package todo.android.lwu.com.todos.tasks
 import todo.android.lwu.com.todos.BasePresenter
 import todo.android.lwu.com.todos.BaseView
 import todo.android.lwu.com.todos.data.Task
+import todo.android.lwu.com.todos.tasks.domain.filter.ActiveTaskFilter
+import todo.android.lwu.com.todos.tasks.domain.filter.CompleteTaskFilter
+import todo.android.lwu.com.todos.tasks.domain.filter.FilterAllTaskFilter
+import todo.android.lwu.com.todos.tasks.domain.filter.TaskFilter
 
 /**
  * Created by lwu on 4/3/17.
@@ -67,19 +71,19 @@ interface TasksContract {
     }
 }
 
-enum class TasksFilterType {
+enum class TasksFilterType(taskfilter: TaskFilter) {
     /**
      * Do not filter tasks.
      */
-    ALL_TASKS,
+    ALL_TASKS(FilterAllTaskFilter()),
 
     /**
      * Filters only the active (not completed yet) tasks.
      */
-    ACTIVE_TASKS,
+    ACTIVE_TASKS(ActiveTaskFilter()),
 
     /**
      * Filters only the completed tasks.
      */
-    COMPLETED_TASKS
+    COMPLETED_TASKS(CompleteTaskFilter())
 }
