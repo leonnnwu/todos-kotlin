@@ -76,6 +76,10 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "com.jakewharton.timber:timber:$rootProject.ext.timberVersion"
     compile "org.greenrobot:eventbus:$rootProject.ext.eventbusVersion"
+    compile "io.reactivex:rxjava:$rootProject.ext.rxjavaVersion"
+    compile "io.reactivex:rxandroid:$rootProject.rxandroidVersion"
+    compile "com.squareup.sqlbrite:sqlbrite:$rootProject.sqlbriteVersion"
+
 
     //Dependencies for local unit tests
     testCompile "junit:junit:$rootProject.ext.junitVersion"

@@ -1,5 +1,6 @@
 package todo.android.lwu.com.todos.data.source
 
+import rx.Observable
 import todo.android.lwu.com.todos.data.Task
 
 /**
@@ -35,77 +36,84 @@ class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSo
         cacheIsDirty = true
     }
 
-    override fun getAllTasks(callback: TasksDataSource.LoadTasksCallback) {
+    override fun getAllTasks(): Observable<List<Task>> {
+        if (cachedTasks.isNotEmpty() && !cacheIsDirty) {
+            return Observable.from(cachedTasks.values).toList()
+        }
 
-        when {
-            cachedTasks.isNotEmpty() && !cacheIsDirty -> {
-                val taskList = cachedTasks.values.toList()
-                callback.onTasksLoaded(taskList)
-            }
-            cacheIsDirty -> {
-                tasksRemoteDataSource.getAllTasks(object : TasksDataSource.LoadTasksCallback {
-                    override fun onTasksLoaded(tasks: List<Task>) {
-                        refreshCache(tasks)
-                        refreshLocalDataSource(tasks)
-                        callback.onTasksLoaded(tasks)
-                    }
+        val remoteTasks = getAndSaveRemoteTasks()
 
-                    override fun onDataNotAvailable() {
-                        callback.onDataNotAvailable()
-                    }
+        if (cacheIsDirty) {
+            return remoteTasks
+        } else {
+            val localTasks = getAndCacheLocalTasks()
 
-                })
-            }
-            else -> {
-                tasksLocalDataSource.getAllTasks(object: TasksDataSource.LoadTasksCallback {
-                    override fun onTasksLoaded(tasks: List<Task>) {
-                        refreshCache(tasks)
-                        callback.onTasksLoaded(cachedTasks.values.toList())
-                    }
-
-                    override fun onDataNotAvailable() {
-                        getTasksFromRemoteDataSource(callback)
-                    }
-                })
-            }
+            return Observable.concat(localTasks, remoteTasks)
+                    .filter {
+                        it.isNotEmpty()
+                    }.first()
         }
     }
 
-    override fun getTask(taskId: String, callback: TasksDataSource.GetTaskCallback) {
+    override fun getTask(taskId: String): Observable<Task> {
         val cachedTask = getTaskWithId(taskId)
 
         if (cachedTask != null) {
-            callback.onTaskLoaded(cachedTask)
+            return Observable.just(cachedTask)
         } else {
-            tasksLocalDataSource.getTask(taskId, object : TasksDataSource.GetTaskCallback {
-                override fun onTaskLoaded(task: Task?) {
-                    if (task == null) {
-                        onDataNotAvailable()
-                    } else {
-                        cachedTasks.put(task.id, task)
-                        callback.onTaskLoaded(task)
+            val localTask = getTaskWithIdFromLocalRepository(taskId)
+            val remoteTask = getTasksFromRemoteDataSource(taskId)
+            return Observable
+                    .concat(localTask, remoteTask)
+                    .first()
+                    .map { task ->
+                        if (task == null) {
+                            throw NoSuchElementException("No task found with taskId $taskId")
+                        } else {
+                            task
+                        }
                     }
-                }
-
-                override fun onDataNotAvailable() {
-                    tasksRemoteDataSource.getTask(taskId, object : TasksDataSource.GetTaskCallback {
-                        override fun onTaskLoaded(task: Task?) {
-                            if (task == null) {
-                                onDataNotAvailable()
-                            } else {
-                                cachedTasks.put(task.id, task)
-                                callback.onTaskLoaded(task)
-                            }
-                        }
-
-                        override fun onDataNotAvailable() {
-                            callback.onDataNotAvailable()
-                        }
-                    })
-                }
-            })
-
         }
+    }
+
+    private fun getTaskWithIdFromLocalRepository(taskId: String): Observable<Task> {
+        return tasksLocalDataSource
+                .getTask(taskId)
+                .doOnNext {
+                    cachedTasks.put(taskId, it)
+                }.first()
+
+    }
+
+    private fun getTasksFromRemoteDataSource(taskId: String): Observable<Task> {
+        return tasksRemoteDataSource
+                .getTask(taskId)
+                .doOnNext { task ->
+                    tasksLocalDataSource.saveTask(task)
+                    cachedTasks.put(taskId, task)
+                }
+    }
+
+    private fun getAndCacheLocalTasks(): Observable<List<Task>> {
+        return tasksLocalDataSource
+                .getAllTasks()
+                .flatMap { tasks ->
+                    Observable.from(tasks).doOnNext { task ->
+                        cachedTasks.put(task.id, task)
+                    }
+                }.toList()
+    }
+
+    private fun getAndSaveRemoteTasks(): Observable<List<Task>> {
+        return tasksRemoteDataSource
+                .getAllTasks()
+                .flatMap { tasks ->
+                    Observable.from(tasks).doOnNext { task ->
+                        tasksLocalDataSource.saveTask(task)
+                        cachedTasks.put(task.id, task)
+                    }.toList()
+                }
+                .doOnCompleted { cacheIsDirty = false }
     }
 
     override fun completeTask(task: Task) {
@@ -167,36 +175,6 @@ class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSo
 
     private fun getTaskWithId(id: String): Task? {
         return cachedTasks[id]
-    }
-
-    private fun getTasksFromRemoteDataSource(callback: TasksDataSource.LoadTasksCallback) {
-        tasksRemoteDataSource.getAllTasks(object: TasksDataSource.LoadTasksCallback {
-            override fun onTasksLoaded(tasks: List<Task>) {
-                refreshCache(tasks)
-                refreshLocalDataSource(tasks)
-                callback.onTasksLoaded(cachedTasks.values.toList())
-            }
-
-            override fun onDataNotAvailable() {
-                callback.onDataNotAvailable()
-            }
-        })
-    }
-
-    private fun refreshLocalDataSource(tasks: List<Task>) {
-        tasksLocalDataSource.deleteAllTasks()
-        tasks.forEach {
-            tasksLocalDataSource.saveTask(it)
-        }
-    }
-
-    private fun refreshCache(tasks: List<Task>) {
-        cachedTasks.clear()
-        tasks.associateBy {
-            it.id
-        }.let {
-            cachedTasks.putAll(it)
-        }
     }
 
 }

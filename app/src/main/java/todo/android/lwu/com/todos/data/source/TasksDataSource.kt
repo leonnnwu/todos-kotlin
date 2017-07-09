@@ -1,5 +1,6 @@
 package todo.android.lwu.com.todos.data.source
 
+import rx.Observable
 import todo.android.lwu.com.todos.data.Task
 
 /**
@@ -7,19 +8,9 @@ import todo.android.lwu.com.todos.data.Task
  */
 interface TasksDataSource {
 
-    interface LoadTasksCallback {
-        fun onTasksLoaded(tasks: List<Task>)
-        fun onDataNotAvailable()
-    }
+    fun getAllTasks(): Observable<List<Task>>
 
-    interface GetTaskCallback {
-        fun onTaskLoaded(task: Task?)
-        fun onDataNotAvailable()
-    }
-
-    fun getAllTasks(callback: LoadTasksCallback)
-
-    fun getTask(taskId: String, callback: GetTaskCallback)
+    fun getTask(taskId: String): Observable<Task>
 
     fun saveTask(task: Task)
 

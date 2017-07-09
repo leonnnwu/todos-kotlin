@@ -1,8 +1,10 @@
 package todo.android.lwu.com.todos.data.source.remote
 
 import android.os.Handler
+import rx.Observable
 import todo.android.lwu.com.todos.data.Task
 import todo.android.lwu.com.todos.data.source.TasksDataSource
+import java.util.concurrent.TimeUnit
 
 /**
  * Created by lwu on 4/23/17.
@@ -26,16 +28,24 @@ object TasksRemoteDataSource: TasksDataSource {
         TASKS_SERVICE_DATA.put(newTask.id, newTask)
     }
 
-    override fun getAllTasks(callback: TasksDataSource.LoadTasksCallback) {
-        Handler().postDelayed({
-            callback.onTasksLoaded(TASKS_SERVICE_DATA.values.toList())
-        }, SERVICE_LATENCY_IN_MILLIS)
+    override fun getAllTasks(): Observable<List<Task>> {
+        return Observable
+                .from(TASKS_SERVICE_DATA.values)
+                .delay(SERVICE_LATENCY_IN_MILLIS, TimeUnit.MILLISECONDS)
+                .toList()
     }
 
-    override fun getTask(taskId: String, callback: TasksDataSource.GetTaskCallback) {
-        Handler().postDelayed({
-            callback.onTaskLoaded(TASKS_SERVICE_DATA[taskId])
-        }, SERVICE_LATENCY_IN_MILLIS)
+    override fun getTask(taskId: String): Observable<Task> {
+
+        val task = TASKS_SERVICE_DATA[taskId]
+
+        if (task != null) {
+            return Observable
+                    .just(task)
+                    .delay(SERVICE_LATENCY_IN_MILLIS, TimeUnit.MILLISECONDS)
+        } else {
+            return Observable.empty()
+        }
     }
 
     override fun saveTask(task: Task) {
