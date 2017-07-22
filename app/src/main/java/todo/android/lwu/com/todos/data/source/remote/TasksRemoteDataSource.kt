@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
  */
 object TasksRemoteDataSource: TasksDataSource {
     val TASKS_SERVICE_DATA = emptyMap<String, Task>().toMutableMap()
-    val SERVICE_LATENCY_IN_MILLIS = 5000L
+    val SERVICE_LATENCY_IN_MILLIS = 2000L
 
     init {
         addTask("Build tower in Pisa", "Ground looks good, no foundation work required.")

@@ -47,7 +47,12 @@ class TaskDetailFragment: Fragment(), TaskDetailContract.View {
 
     override fun onResume() {
         super.onResume()
-        taskDetailPresenter.start()
+        taskDetailPresenter.subscribe()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        taskDetailPresenter.unsubscribe()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

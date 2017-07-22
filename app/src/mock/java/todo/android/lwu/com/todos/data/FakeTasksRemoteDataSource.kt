@@ -1,5 +1,7 @@
 package todo.android.lwu.com.todos.data
 
+import rx.Observable
+import timber.log.Timber
 import todo.android.lwu.com.todos.data.source.TasksDataSource
 
 /**
@@ -18,12 +20,25 @@ object FakeTasksRemoteDataSource: TasksDataSource {
         TASKS_SERVICE_DATA.put(newTask.id, newTask)
     }
 
-    override fun getAllTasks(callback: TasksDataSource.LoadTasksCallback) {
-        callback.onTasksLoaded(TASKS_SERVICE_DATA.values.toList())
+    override fun getAllTasks(): Observable<List<Task>> {
+        return Observable
+                .from(TASKS_SERVICE_DATA.values.toList())
+                .toList()
+                .doOnNext {
+                    Timber.d("onNext")
+                }
+                .doOnCompleted {
+                    Timber.d("onComplete")
+                }
     }
 
-    override fun getTask(taskId: String, callback: TasksDataSource.GetTaskCallback) {
-        callback.onTaskLoaded(TASKS_SERVICE_DATA[taskId])
+    override fun getTask(taskId: String): Observable<Task> {
+        val task = TASKS_SERVICE_DATA[taskId]
+        if (task != null) {
+            return Observable.just(task)
+        } else {
+            return Observable.empty<Task>()
+        }
     }
 
     override fun saveTask(task: Task) {

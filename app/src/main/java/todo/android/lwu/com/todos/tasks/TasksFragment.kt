@@ -12,6 +12,7 @@ import android.widget.Toast
 import kotlinx.android.synthetic.main.task_item.view.*
 import kotlinx.android.synthetic.main.tasks_fag.*
 import kotlinx.android.synthetic.main.tasks_fag.view.*
+import timber.log.Timber
 import todo.android.lwu.com.todos.R
 import todo.android.lwu.com.todos.addedittask.AddEditTaskActivity
 import todo.android.lwu.com.todos.data.Task
@@ -82,21 +83,19 @@ class TasksFragment: Fragment(), TasksContract.View{
         return root
     }
 
-    override fun onStart() {
-        super.onStart()
-    }
-
     override fun onResume() {
         super.onResume()
-        presenter.start()
+        presenter.subscribe()
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onPause() {
+        super.onPause()
+        presenter.unsubscribe()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.tasks_fragment_menu, menu)
+        super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -179,6 +178,7 @@ class TasksFragment: Fragment(), TasksContract.View{
 
     override fun setLoadingIndicator(active: Boolean) {
         // Make sure setRefreshing is called after the layout is done with everything else.
+        Timber.d("setLoadingIndicator $active")
         refresh_layout.post {
             refresh_layout.isRefreshing = active
         }

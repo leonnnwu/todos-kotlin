@@ -1,8 +1,10 @@
 package todo.android.lwu.com.todos.addedittask
 
+import rx.subscriptions.CompositeSubscription
 import todo.android.lwu.com.todos.data.Task
 import todo.android.lwu.com.todos.data.source.TasksDataSource
 import todo.android.lwu.com.todos.data.source.TasksRepository
+import todo.android.lwu.com.todos.utils.schedulers.BaseSchedulerProvider
 
 /**
  * Created by lwu on 6/24/17.
@@ -11,20 +13,26 @@ class AddEditTaskPresenter(
     val taskId: String?,
     val tasksRepository: TasksRepository,
     val addTaskView: AddEditTaskContract.View,
-    shouldLoadDataFromRepo: Boolean
+    shouldLoadDataFromRepo: Boolean,
+    private val schedulerProvider: BaseSchedulerProvider
 ): AddEditTaskContract.Presenter{
 
     private var isDataMissing: Boolean
+    private val subscriptions = CompositeSubscription()
 
     init {
         addTaskView.setPresenter(this)
         isDataMissing = shouldLoadDataFromRepo
     }
 
-    override fun start() {
+    override fun subscribe() {
         if (!isNewTask() && isDataMissing) {
             populateTask()
         }
+    }
+
+    override fun unsubscribe() {
+        subscriptions.clear()
     }
 
     override fun saveTask(title: String, description: String) {
@@ -37,21 +45,24 @@ class AddEditTaskPresenter(
 
     override fun populateTask() {
         if (taskId != null) {
-            tasksRepository.getTask(taskId, object : TasksDataSource.GetTaskCallback {
-
-                override fun onTaskLoaded(task: Task?) {
-                    if (addTaskView.isActive() && task != null) {
-                        addTaskView.setTitle(task.title)
-                        addTaskView.setDescription(task.description)
-                    }
-                }
-
-                override fun onDataNotAvailable() {
-                    if (addTaskView.isActive()) {
-                        addTaskView.showEmptyTaskError()
-                    }
-                }
-            })
+            subscriptions.add(
+                    tasksRepository.getTask(taskId)
+                            .subscribeOn(schedulerProvider.computation())
+                            .observeOn(schedulerProvider.ui())
+                            .subscribe(
+                                    { onNext ->
+                                        if (addTaskView.isActive() && onNext != null) {
+                                            addTaskView.setTitle(onNext.title)
+                                            addTaskView.setDescription(onNext.description)
+                                        }
+                                    },
+                                    { onError ->
+                                        if (addTaskView.isActive()) {
+                                            addTaskView.showEmptyTaskError()
+                                        }
+                                    }
+                            )
+            )
         }
     }
 

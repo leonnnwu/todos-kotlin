@@ -1,20 +1,37 @@
 package todo.android.lwu.com.todos.tasks
 
 import android.app.Activity
+import rx.Observable
+import rx.schedulers.Schedulers
+import rx.subscriptions.CompositeSubscription
+import timber.log.Timber
 import todo.android.lwu.com.todos.addedittask.AddEditTaskActivity
 import todo.android.lwu.com.todos.data.Task
 import todo.android.lwu.com.todos.data.source.TasksDataSource
 import todo.android.lwu.com.todos.data.source.TasksRepository
+import todo.android.lwu.com.todos.utils.schedulers.BaseSchedulerProvider
 
 /**
  * Created by lwu on 4/3/17.
  */
-class TasksPresenter(private val tasksRepository: TasksRepository, private val tasksView: TasksContract.View) : TasksContract.Presenter {
+class TasksPresenter(private val tasksRepository: TasksRepository,
+                     private val tasksView: TasksContract.View,
+                     private val schedulerProvider: BaseSchedulerProvider
+) : TasksContract.Presenter {
     private var currentFiltering = TasksFilterType.ALL_TASKS
     private var firstLoad = true
+    private val subscriptions = CompositeSubscription()
 
     init {
         tasksView.setPresenter(this)
+    }
+
+    override fun subscribe() {
+        loadTasks(false)
+    }
+
+    override fun unsubscribe() {
+        subscriptions.clear()
     }
 
     override fun loadTasks(forceUpdate: Boolean) {
@@ -62,12 +79,7 @@ class TasksPresenter(private val tasksRepository: TasksRepository, private val t
         return currentFiltering
     }
 
-    override fun start() {
-        loadTasks(false)
-    }
-
     private fun loadTasks(forceUpdate: Boolean, showLoadingUI: Boolean) {
-
         if (showLoadingUI) {
             tasksView.setLoadingIndicator(true)
         }
@@ -76,47 +88,66 @@ class TasksPresenter(private val tasksRepository: TasksRepository, private val t
             tasksRepository.refreshTasks()
         }
 
-        tasksRepository.getAllTasks(object: TasksDataSource.LoadTasksCallback {
-            override fun onTasksLoaded(tasks: List<Task>) {
-                val tasksToShow = tasks.filter {
-                    when (currentFiltering) {
-                        TasksFilterType.ALL_TASKS -> true
-                        TasksFilterType.ACTIVE_TASKS -> it.isActive()
-                        TasksFilterType.COMPLETED_TASKS -> it.completed
-                    }
+        subscriptions.clear()
+
+        val subscription = tasksRepository
+                .getAllTasks()
+                .flatMap {
+                    Observable.from(it)
                 }
+                .filter(this::filterTask)
+                .toList()
+                .subscribeOn(schedulerProvider.computation())
+                .observeOn(schedulerProvider.ui())
+                .subscribe(
+                        { onNext ->
+                            Timber.d("onNext: ${onNext.count()}")
+                            this.processTasks(onNext)
+                        }
+                        ,
+                        { onError ->
+                            Timber.d("onError")
+                            tasksView.showLoadingTasksError()
+                        },
+                        {
+                            Timber.d("onComplete")
+                            tasksView.setLoadingIndicator(false)
+                        }
+                )
 
-                if (!tasksView.isActive()) {
-                    return
-                }
+        subscriptions.add(subscription)
+    }
 
-                if (showLoadingUI) {
-                    tasksView.setLoadingIndicator(false)
-                }
+    private fun processTasks(tasks: List<Task>) {
+        if (tasks.isEmpty()) {
+            processEmptyTask()
+        } else {
+            tasksView.showTasks(tasks)
+            showFilterLabel()
+        }
+    }
 
+    private fun processEmptyTask() {
+        when (currentFiltering) {
+            TasksFilterType.ACTIVE_TASKS -> tasksView.showNoActiveTasks()
+            TasksFilterType.COMPLETED_TASKS -> tasksView.showNoCompletedTasks()
+            else -> tasksView.showNoTasks()
+        }
+    }
 
-                if (tasksToShow.isEmpty()) {
-                    when (currentFiltering) {
-                        TasksFilterType.ACTIVE_TASKS -> tasksView.showNoActiveTasks()
-                        TasksFilterType.COMPLETED_TASKS -> tasksView.showNoCompletedTasks()
-                        else -> tasksView.showNoTasks()
-                    }
-                } else {
-                    tasksView.showTasks(tasksToShow)
+    private fun showFilterLabel() {
+        when (currentFiltering) {
+            TasksFilterType.ACTIVE_TASKS -> tasksView.showActiveFilterLabel()
+            TasksFilterType.COMPLETED_TASKS -> tasksView.showCompletedFilterLabel()
+            else -> tasksView.showAllFilterLabel()
+        }
+    }
 
-                    when (currentFiltering) {
-                        TasksFilterType.ACTIVE_TASKS -> tasksView.showActiveFilterLabel()
-                        TasksFilterType.COMPLETED_TASKS -> tasksView.showCompletedFilterLabel()
-                        else -> tasksView.showAllFilterLabel()
-                    }
-                }
-            }
-
-            override fun onDataNotAvailable() {
-                if (tasksView.isActive()) {
-                    tasksView.showLoadingTasksError()
-                }
-            }
-        })
+    private fun filterTask(task: Task): Boolean {
+        return when (currentFiltering) {
+            TasksFilterType.ACTIVE_TASKS -> task.isActive()
+            TasksFilterType.COMPLETED_TASKS -> task.completed
+            else -> true
+        }
     }
 }

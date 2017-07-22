@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase
 import com.squareup.sqlbrite.BriteDatabase
 import com.squareup.sqlbrite.SqlBrite
 import rx.Observable
+import timber.log.Timber
 import todo.android.lwu.com.todos.data.Task
 import todo.android.lwu.com.todos.data.source.TasksDataSource
 import todo.android.lwu.com.todos.data.source.local.TasksPersistenceContract.TaskEntry
@@ -32,6 +33,7 @@ class TasksLocalDataSource private constructor(context: Context,
 
 
     override fun getAllTasks(): Observable<List<Task>> {
+        Timber.d("getAllTasks")
 
         val projection = arrayOf(
             TaskEntry.COLUMN_NAME_ENTRY_ID,
@@ -41,7 +43,8 @@ class TasksLocalDataSource private constructor(context: Context,
         )
 
         val sql = "SELECT ${projection.joinToString(",")} FROM ${TaskEntry.TABLE_NAME}"
-        return dbHelper.createQuery(TaskEntry.TABLE_NAME, sql).mapToList(this::getTask)
+        Timber.d("sql: $sql")
+        return dbHelper.createQuery(TaskEntry.TABLE_NAME, sql).mapToList { this.getTask(it) }
 
     }
 

@@ -1,10 +1,12 @@
 package todo.android.lwu.com.todos.taskdetail
 
 import android.content.Intent
+import rx.subscriptions.CompositeSubscription
 import todo.android.lwu.com.todos.addedittask.AddEditTaskActivity
 import todo.android.lwu.com.todos.data.Task
 import todo.android.lwu.com.todos.data.source.TasksDataSource
 import todo.android.lwu.com.todos.data.source.TasksRepository
+import todo.android.lwu.com.todos.utils.schedulers.BaseSchedulerProvider
 
 /**
  * Created by lwu on 6/25/17.
@@ -12,15 +14,22 @@ import todo.android.lwu.com.todos.data.source.TasksRepository
 class TaskDetailPresenter(
         val taskId: String,
         val taskDetailView: TaskDetailContract.View,
-        val tasksRepository: TasksRepository
+        val tasksRepository: TasksRepository,
+        private val schedulerProvider: BaseSchedulerProvider
 ): TaskDetailContract.Presenter {
+
+    private val subscription = CompositeSubscription()
 
     init {
         taskDetailView.setPresenter(this)
     }
 
-    override fun start() {
+    override fun subscribe() {
         openTask()
+    }
+
+    override fun unsubscribe() {
+        subscription.clear()
     }
 
     override fun editTask() {
@@ -63,31 +72,33 @@ class TaskDetailPresenter(
     }
 
     private fun openTask() {
+        if (taskId.isNullOrEmpty()) {
+            taskDetailView.showMissingTask()
+        }
+
         taskDetailView.setLoadingIndicator(true)
 
-        tasksRepository.getTask(taskId, object: TasksDataSource.GetTaskCallback {
-            override fun onTaskLoaded(task: Task?) {
-                if (!taskDetailView.isActive()) {
-                    return
-                }
-
-                taskDetailView.setLoadingIndicator(false)
-
-                if (task == null) {
-                    taskDetailView.showMissingTask()
-                } else {
-                    showTask(task)
-                }
-            }
-
-            override fun onDataNotAvailable() {
-                if (!taskDetailView.isActive()) {
-                    return
-                }
-
-                taskDetailView.showMissingTask()
-            }
-        })
+        subscription.add(
+                tasksRepository
+                        .getTask(taskId)
+                        .subscribeOn(schedulerProvider.computation())
+                        .observeOn(schedulerProvider.ui())
+                        .subscribe(
+                                { onNext ->
+                                    if (taskDetailView.isActive()) {
+                                        showTask(onNext)
+                                    }
+                                },
+                                { onError ->
+                                    if (taskDetailView.isActive()) {
+                                        taskDetailView.showMissingTask()
+                                    }
+                                },
+                                {
+                                    taskDetailView.setLoadingIndicator(false)
+                                }
+                        )
+        )
     }
 
     private fun showTask(task: Task) {

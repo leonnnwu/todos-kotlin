@@ -6,6 +6,7 @@ import kotlinx.android.synthetic.main.addtask_act.*
 import todo.android.lwu.com.todos.Injection
 import todo.android.lwu.com.todos.R
 import todo.android.lwu.com.todos.utils.addFragmentToActivity
+import todo.android.lwu.com.todos.utils.schedulers.SchedulerProvider
 
 /**
  * Created by lwu on 6/24/17.
@@ -40,7 +41,8 @@ class AddEditTaskActivity: AppCompatActivity() {
                 taskId,
                 Injection.provideTasksRepository(applicationContext),
                 addEditTaskFragment,
-                shouldLoadDataFromRepo)
+                shouldLoadDataFromRepo,
+                SchedulerProvider)
 
     }
 

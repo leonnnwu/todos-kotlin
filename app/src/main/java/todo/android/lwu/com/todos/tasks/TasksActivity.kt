@@ -14,6 +14,7 @@ import todo.android.lwu.com.todos.Injection
 import todo.android.lwu.com.todos.R
 import todo.android.lwu.com.todos.statistics.StatisticsActivity
 import todo.android.lwu.com.todos.utils.addFragmentToActivity
+import todo.android.lwu.com.todos.utils.schedulers.SchedulerProvider
 
 class TasksActivity : AppCompatActivity() {
 
@@ -47,7 +48,7 @@ class TasksActivity : AppCompatActivity() {
         tasksFragment.takeIf { !it.isAdded }?.let { addFragmentToActivity(supportFragmentManager, it, R.id.contentFrame) }
 
         //Create the presenter
-        tasksPresenter = TasksPresenter(Injection.provideTasksRepository(applicationContext), tasksFragment)
+        tasksPresenter = TasksPresenter(Injection.provideTasksRepository(applicationContext), tasksFragment, SchedulerProvider)
 
         //Set listener of floating action bar.
         fab_add_task.setOnClickListener { _ ->
@@ -89,6 +90,7 @@ class TasksActivity : AppCompatActivity() {
                 R.id.list_navigation_menu_item -> Unit
                 R.id.statistics_navigation_menu_item -> {
                     val intent = Intent(this, StatisticsActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                     startActivity(intent)
                 }
                 else -> Unit

@@ -9,7 +9,7 @@ object TasksPersistenceContract {
 
     abstract class TaskEntry: BaseColumns {
         companion object {
-            const val TABLE_NAME = "tasks"
+            const val TABLE_NAME = "task"
             const val COLUMN_NAME_ENTRY_ID = "entryid"
             const val COLUMN_NAME_TITLE = "title"
             const val COLUMN_NAME_DESCRIPTION = "description"

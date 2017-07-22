@@ -1,6 +1,7 @@
 package todo.android.lwu.com.todos.data.source
 
 import rx.Observable
+import timber.log.Timber
 import todo.android.lwu.com.todos.data.Task
 
 /**
@@ -37,6 +38,7 @@ class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSo
     }
 
     override fun getAllTasks(): Observable<List<Task>> {
+        Timber.d("getAllTasks")
         if (cachedTasks.isNotEmpty() && !cacheIsDirty) {
             return Observable.from(cachedTasks.values).toList()
         }
@@ -95,25 +97,38 @@ class TasksRepository private constructor(val tasksRemoteDataSource: TasksDataSo
     }
 
     private fun getAndCacheLocalTasks(): Observable<List<Task>> {
+        Timber.d("getAndCacheLocalTasks")
         return tasksLocalDataSource
                 .getAllTasks()
                 .flatMap { tasks ->
                     Observable.from(tasks).doOnNext { task ->
+                        Timber.d("flatMap.onNext")
                         cachedTasks.put(task.id, task)
                     }
                 }.toList()
+                .doOnNext {
+                    Timber.d("onNext")
+                }
+                .doOnCompleted {
+                    Timber.d("onComplete")
+                }
     }
 
     private fun getAndSaveRemoteTasks(): Observable<List<Task>> {
+        Timber.d("getAndSaveRemoteTasks")
         return tasksRemoteDataSource
                 .getAllTasks()
                 .flatMap { tasks ->
                     Observable.from(tasks).doOnNext { task ->
+                        Timber.d("onNext")
                         tasksLocalDataSource.saveTask(task)
                         cachedTasks.put(task.id, task)
                     }.toList()
                 }
-                .doOnCompleted { cacheIsDirty = false }
+                .doOnCompleted {
+                    Timber.d("onComplete")
+                    cacheIsDirty = false
+                }
     }
 
     override fun completeTask(task: Task) {

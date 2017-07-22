@@ -6,6 +6,7 @@ import kotlinx.android.synthetic.main.taskdetail_act.*
 import todo.android.lwu.com.todos.Injection
 import todo.android.lwu.com.todos.R
 import todo.android.lwu.com.todos.utils.addFragmentToActivity
+import todo.android.lwu.com.todos.utils.schedulers.SchedulerProvider
 
 /**
  * Created by lwu on 6/25/17.
@@ -34,7 +35,7 @@ class TaskDetailActivity: AppCompatActivity() {
             addFragmentToActivity(supportFragmentManager, taskDetailFragment, R.id.contentFrame)
         }
 
-        TaskDetailPresenter(taskId, taskDetailFragment, Injection.provideTasksRepository(applicationContext))
+        TaskDetailPresenter(taskId, taskDetailFragment, Injection.provideTasksRepository(applicationContext), SchedulerProvider)
     }
 
     override fun onSupportNavigateUp(): Boolean {

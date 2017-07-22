@@ -24,9 +24,14 @@ class StatisticsFragment: Fragment(), StatisticsContract.View {
         return inflater.inflate(R.layout.statistics_frag, container, false)
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        statisticsPresenter.start()
+    override fun onResume() {
+        super.onResume()
+        statisticsPresenter.subscribe()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        statisticsPresenter.unsubscribe()
     }
 
     override fun setProgressIndicator(active: Boolean) {

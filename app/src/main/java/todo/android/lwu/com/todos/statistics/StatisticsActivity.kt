@@ -9,6 +9,7 @@ import kotlinx.android.synthetic.main.statistics_act.*
 import todo.android.lwu.com.todos.Injection
 import todo.android.lwu.com.todos.R
 import todo.android.lwu.com.todos.utils.addFragmentToActivity
+import todo.android.lwu.com.todos.utils.schedulers.SchedulerProvider
 
 /**
  * Created by lwu on 6/26/17.
@@ -35,7 +36,7 @@ class StatisticsActivity: AppCompatActivity() {
             addFragmentToActivity(supportFragmentManager, statisticsFragment, R.id.contentFrame)
         }
 
-        StatisticsPresenter(Injection.provideTasksRepository(applicationContext), statisticsFragment)
+        StatisticsPresenter(Injection.provideTasksRepository(applicationContext), statisticsFragment, SchedulerProvider)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
