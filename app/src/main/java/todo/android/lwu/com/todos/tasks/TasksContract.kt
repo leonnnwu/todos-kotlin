@@ -12,25 +12,11 @@ interface TasksContract {
 
         fun showTasks(tasks: List<Task>)
 
-        fun showNoTasks()
-
         fun showAddTask()
-
-        fun showFilteringPopUpMenu()
-
-        fun showActiveFilterLabel()
-
-        fun showCompletedFilterLabel()
-
-        fun showAllFilterLabel()
-
+        
         fun isActive(): Boolean
 
         fun setLoadingIndicator(active: Boolean)
-
-        fun showNoActiveTasks()
-
-        fun showNoCompletedTasks()
 
         fun showLoadingTasksError()
 

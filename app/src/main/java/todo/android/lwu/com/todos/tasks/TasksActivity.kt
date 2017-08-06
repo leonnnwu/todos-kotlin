@@ -49,6 +49,8 @@ class TasksActivity : AppCompatActivity() {
         //Create the presenter
         tasksPresenter = TasksPresenter(Injection.provideTasksRepository(applicationContext), tasksFragment)
 
+        tasksFragment.setTasksViewModel(TasksViewModel(applicationContext, tasksPresenter))
+
         //Set listener of floating action bar.
         fab_add_task.setOnClickListener { _ ->
             tasksPresenter.addNewTask()
@@ -89,6 +91,7 @@ class TasksActivity : AppCompatActivity() {
                 R.id.list_navigation_menu_item -> Unit
                 R.id.statistics_navigation_menu_item -> {
                     val intent = Intent(this, StatisticsActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                     startActivity(intent)
                 }
                 else -> Unit

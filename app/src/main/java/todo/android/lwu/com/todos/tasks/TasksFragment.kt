@@ -1,6 +1,7 @@
 package todo.android.lwu.com.todos.tasks
 
 import android.content.Intent
+import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
@@ -8,13 +9,12 @@ import android.support.v4.content.ContextCompat
 import android.view.*
 import android.widget.BaseAdapter
 import android.widget.PopupMenu
-import android.widget.Toast
-import kotlinx.android.synthetic.main.task_item.view.*
 import kotlinx.android.synthetic.main.tasks_fag.*
-import kotlinx.android.synthetic.main.tasks_fag.view.*
 import todo.android.lwu.com.todos.R
 import todo.android.lwu.com.todos.addedittask.AddEditTaskActivity
 import todo.android.lwu.com.todos.data.Task
+import todo.android.lwu.com.todos.databinding.TaskItemBinding
+import todo.android.lwu.com.todos.databinding.TasksFagBinding
 import todo.android.lwu.com.todos.taskdetail.TaskDetailActivity
 
 /**
@@ -24,6 +24,7 @@ class TasksFragment: Fragment(), TasksContract.View{
 
     private lateinit var presenter: TasksContract.Presenter
     private lateinit var listAdapter: TasksAdapter
+    private var tasksViewModel: TasksViewModel? = null
 
     companion object {
         fun newInstance(): TasksFragment = TasksFragment()
@@ -33,35 +34,22 @@ class TasksFragment: Fragment(), TasksContract.View{
         this.presenter = presenter
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        listAdapter = TasksAdapter(emptyList(), object: TasksAdapter.TaskItemListener {
-            override fun onTaskClick(clickedTask: Task) {
-                presenter.openTaskDetails(clickedTask)
-            }
-
-            override fun onCompletedTaskClick(completedTask: Task) {
-                presenter.completeTask(completedTask)
-            }
-
-            override fun onActivateTaskClick(activatedTask: Task) {
-                presenter.activateTask(activatedTask)
-            }
-        })
+    fun setTasksViewModel(viewModel: TasksViewModel) {
+        tasksViewModel = viewModel
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val root = inflater.inflate(R.layout.tasks_fag, container, false)
+        val tasksFragBinding = TasksFagBinding.inflate(inflater, container, false)
+        tasksFragBinding.tasks = tasksViewModel
+        tasksFragBinding.actionHandler = presenter
 
         // Set up tasks view
-        root.tasks_list.adapter = listAdapter
+        val listView = tasksFragBinding.tasksList
 
-        // Set up no tasks view
-        root.noTasksAdd.setOnClickListener { _ ->
-            showAddTask()
-        }
+        listAdapter = TasksAdapter(arrayListOf<Task>(), presenter)
+        listView.adapter = listAdapter
 
-        with(root.refresh_layout) {
+        with(tasksFragBinding.refreshLayout) {
             // Set up refresh progress indicator
             setColorSchemeColors(
                     ContextCompat.getColor(context, R.color.colorPrimary),
@@ -70,7 +58,7 @@ class TasksFragment: Fragment(), TasksContract.View{
             )
 
             // Set the scrolling view in the custom swipeRefreshLayout
-            setScrollUpChild(root.tasks_list)
+            setScrollUpChild(listView)
 
             setOnRefreshListener {
                 presenter.loadTasks(false)
@@ -78,6 +66,8 @@ class TasksFragment: Fragment(), TasksContract.View{
         }
 
         setHasOptionsMenu(true)
+
+        val root = tasksFragBinding.root
 
         return root
     }
@@ -130,9 +120,7 @@ class TasksFragment: Fragment(), TasksContract.View{
 
     override fun showTasks(tasks: List<Task>) {
         listAdapter.replaceData(tasks)
-
-        tasksLL.visibility = View.VISIBLE
-        noTasks.visibility = View.GONE
+        tasksViewModel?.setTaskListSize(tasks.size)
     }
 
     override fun showAddTask() {
@@ -140,7 +128,7 @@ class TasksFragment: Fragment(), TasksContract.View{
         startActivityForResult(intent, AddEditTaskActivity.REQUEST_ADD_TASK)
     }
 
-    override fun showFilteringPopUpMenu() {
+    private fun showFilteringPopUpMenu() {
         val popup = PopupMenu(context, activity.findViewById(R.id.menu_filter))
         popup.menuInflater.inflate(R.menu.filter_tasks, popup.menu)
         popup.setOnMenuItemClickListener { item ->
@@ -153,18 +141,6 @@ class TasksFragment: Fragment(), TasksContract.View{
             true
         }
         popup.show()
-    }
-
-    override fun showActiveFilterLabel() {
-        filteringLabel.text = resources.getString(R.string.label_active)
-    }
-
-    override fun showCompletedFilterLabel() {
-        filteringLabel.text = resources.getString(R.string.label_completed)
-    }
-
-    override fun showAllFilterLabel() {
-        filteringLabel.text = resources.getString(R.string.label_all)
     }
 
     override fun isActive(): Boolean {
@@ -184,55 +160,22 @@ class TasksFragment: Fragment(), TasksContract.View{
         }
     }
 
-    override fun showNoTasks() {
-        showNoTasksView(
-                resources.getString(R.string.no_tasks_all),
-                R.drawable.ic_assignment_turned_in_24dp,
-                false
-        )
-    }
-
-    override fun showNoActiveTasks() {
-        showNoTasksView(
-                resources.getString(R.string.no_tasks_all),
-                R.drawable.ic_check_circle_24dp,
-                false
-        )
-
-    }
-
-    override fun showNoCompletedTasks() {
-        showNoTasksView(
-                resources.getString(R.string.no_tasks_all),
-                R.drawable.ic_verified_user_24dp,
-                false
-        )
-    }
-
     override fun showLoadingTasksError() {
         Snackbar.make(view!!, getString(R.string.loading_tasks_error), Snackbar.LENGTH_LONG).show()
     }
 
-    private fun showNoTasksView(text: String, icon: Int, showAddView: Boolean) {
-        tasksLL.visibility = View.GONE
-        noTasks.visibility = View.VISIBLE
-        noTasksMain.text = text
-        noTasksIcon.setImageDrawable(ContextCompat.getDrawable(context, icon))
-        noTasksAdd.visibility = if (showAddView) View.VISIBLE else View.GONE
-    }
-
-    private class TasksAdapter(tasks: List<Task>, val itemListener: TaskItemListener): BaseAdapter() {
+    private class TasksAdapter(tasks: List<Task>, val userActionsListener: TasksContract.Presenter): BaseAdapter() {
 
         val dataSet: MutableList<Task> = tasks.toMutableList()
 
         fun replaceData(newTasks: List<Task>) {
             setList(newTasks)
-            notifyDataSetChanged()
         }
 
         private fun setList(newTasks: List<Task>) {
             dataSet.clear()
             dataSet.addAll(newTasks)
+            notifyDataSetChanged()
         }
 
         override fun getItem(position: Int): Task {
@@ -248,45 +191,20 @@ class TasksFragment: Fragment(), TasksContract.View{
         }
 
         override fun getView(position: Int, contentView: View?, viewGroup: ViewGroup): View {
-            val rowView = contentView ?: LayoutInflater.from(viewGroup.context).inflate(R.layout.task_item, viewGroup, false)
-
             val task = getItem(position)
+            val binding: TaskItemBinding
 
-            //Set TextView
-            rowView.title.text = task.getTitleForList()
-
-            //Set checkbox
-            rowView.complete.isChecked = task.completed
-
-            if (task.completed) {
-                rowView.setBackgroundResource(R.drawable.list_completed_touch_feedback)
+            if (contentView == null) {
+                binding = TaskItemBinding.inflate(LayoutInflater.from(viewGroup.context), viewGroup, false)
             } else {
-                rowView.setBackgroundResource(R.drawable.touch_feedback)
+                binding = DataBindingUtil.getBinding(contentView)
             }
 
-            //Bind listener
-            rowView.complete.setOnClickListener {
-                if (!task.completed) {
-                    itemListener.onCompletedTaskClick(task)
-                } else {
-                    itemListener.onActivateTaskClick(task)
-                }
-            }
-
-            rowView.setOnClickListener {
-                itemListener.onTaskClick(task)
-            }
-
-            return rowView
-        }
-
-        interface TaskItemListener {
-
-            fun onTaskClick(clickedTask: Task)
-
-            fun onCompletedTaskClick(completedTask: Task)
-
-            fun onActivateTaskClick(activatedTask: Task)
+            val itemActionHandler = TasksItemActionHandler(userActionsListener)
+            binding.actionHandler = itemActionHandler
+            binding.task = task
+            binding.executePendingBindings()
+            return binding.root
         }
     }
 }

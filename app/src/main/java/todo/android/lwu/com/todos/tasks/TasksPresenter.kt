@@ -95,21 +95,7 @@ class TasksPresenter(private val tasksRepository: TasksRepository, private val t
                 }
 
 
-                if (tasksToShow.isEmpty()) {
-                    when (currentFiltering) {
-                        TasksFilterType.ACTIVE_TASKS -> tasksView.showNoActiveTasks()
-                        TasksFilterType.COMPLETED_TASKS -> tasksView.showNoCompletedTasks()
-                        else -> tasksView.showNoTasks()
-                    }
-                } else {
-                    tasksView.showTasks(tasksToShow)
-
-                    when (currentFiltering) {
-                        TasksFilterType.ACTIVE_TASKS -> tasksView.showActiveFilterLabel()
-                        TasksFilterType.COMPLETED_TASKS -> tasksView.showCompletedFilterLabel()
-                        else -> tasksView.showAllFilterLabel()
-                    }
-                }
+                tasksView.showTasks(tasksToShow)
             }
 
             override fun onDataNotAvailable() {
